@@ -16,8 +16,8 @@
             --bayern-red: #dc052d;
             --bayern-red-hover: #b00424;
             --bayern-dark: #86001a;
-            --accent-green: rgba(46, 160, 67, 0.25);
-            --accent-yellow: rgba(227, 179, 64, 0.22);
+            --accent-green: rgba(46, 160, 67, 0.12);
+            --accent-playoff: rgba(56, 139, 253, 0.10);
             --bayern-bright-red: #ff334b;
         }
 
@@ -188,8 +188,11 @@
 
         tr.rank-first td {
             background: var(--accent-green);
-            color: #3fb950;
-            font-weight: bold;
+            border-left: 3px solid #3fb950;
+        }
+        tr.rank-playoff td {
+            background: var(--accent-playoff);
+            border-left: 3px solid #58a6ff;
         }
         tr.bayern-team-row td {
             font-weight: bold;
@@ -392,8 +395,9 @@
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
-        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-green); border-radius: 2px; display: inline-block;"></span> Top 8 (Direktes Achtelfinale)</div>
+        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(46, 160, 67, 0.3); border-left: 3px solid #3fb950; border-radius: 2px; display: inline-block;"></span> Top 8 (Direktes Achtelfinale)</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(56, 139, 253, 0.2); border-left: 3px solid #58a6ff; border-radius: 2px; display: inline-block;"></span> Plätze 9–24 (Play-offs / Zwischenrunde)</div>
         </div>
     </div>
 
@@ -825,7 +829,11 @@
 
         sorted.forEach((s, idx) => {
             let tr = document.createElement('tr');
-            if (idx < 8) tr.classList.add('rank-first');
+            if (idx < 8) {
+                tr.classList.add('rank-first');
+            } else if (idx >= 8 && idx < 24) {
+                tr.classList.add('rank-playoff');
+            }
             if (s.name === "Bayern München") tr.classList.add('bayern-team-row');
 
             let diff = s.goalsFor - s.goalsAgainst;
