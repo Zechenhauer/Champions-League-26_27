@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FC Bayern München — UEFA Champions League Spielplan & Statistik 2026/27</title>
+    <title>FC Bayern München — UEFA Champions League Spielplan, Tabelle & Statistik 2026/27</title>
     <!-- Supabase Client Bibliothek laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -17,6 +17,7 @@
             --bayern-red-hover: #b00424;
             --bayern-dark: #86001a;
             --accent-green: rgba(46, 160, 67, 0.25);
+            --accent-yellow: rgba(227, 179, 64, 0.22);
             --bayern-bright-red: #ff334b;
         }
 
@@ -184,6 +185,19 @@
             white-space: nowrap;
         }
         tr:hover { background-color: rgba(220, 5, 45, 0.03); }
+
+        tr.rank-first td {
+            background: var(--accent-green);
+            color: #3fb950;
+            font-weight: bold;
+        }
+        tr.bayern-team-row td {
+            font-weight: bold;
+            color: var(--bayern-bright-red);
+            background: rgba(220, 5, 45, 0.15);
+            border-top: 1px solid rgba(220, 5, 45, 0.4);
+            border-bottom: 1px solid rgba(220, 5, 45, 0.4);
+        }
 
         /* Statistik-Grid */
         .stats-grid {
@@ -357,6 +371,32 @@
         </div>
     </div>
 
+    <!-- GESAMT-TABELLE (CHAMPIONS LEAGUE LIGAPHASE) -->
+    <div class="section-box">
+        <div class="section-header">Champions League Tabelle (Ligaphase)</div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 35px;">Pl.</th>
+                        <th>Mannschaft</th>
+                        <th style="text-align: center;">Sp</th>
+                        <th style="text-align: center;">S</th>
+                        <th style="text-align: center;">U</th>
+                        <th style="text-align: center;">N</th>
+                        <th style="text-align: center;">Tore</th>
+                        <th style="text-align: center;">Diff</th>
+                        <th style="text-align: center;">Punkte</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-green); border-radius: 2px; display: inline-block;"></span> Top 8 (Direktes Achtelfinale)</div>
+        </div>
+    </div>
+
     <!-- ADMIN BEREICH -->
     <div class="admin-card" id="adminCard">
         <div style="font-weight: bold; color: var(--bayern-bright-red); margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
@@ -377,11 +417,19 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const ADMIN_PIN = "1900";
+    const ADMIN_PIN = "1919";
     let isAdmin = false;
 
     let leagueData = {
         currentMatchday: 1,
+        teams: [
+            "AEK Athen", "Ajax", "Arsenal", "Aston Villa", "Atlético de Madrid", "Barcelona", 
+            "Bayern München", "Bodø/Glimt", "Borussia Dortmund", "Club Brugge", "Como", 
+            "Fenerbahçe", "Feyenoord", "Galatasaray", "Inter", "LASK", "Leipzig", "Lens", 
+            "Lille", "Liverpool", "Manchester City", "Manchester United", "Napoli", "Paris Saint-Germain", 
+            "Porto", "PSV Eindhoven", "Real Betis", "Real Madrid", "Roma", "Sabah", "Shakhtar Donetsk", 
+            "Slavia Praha", "Slovan Bratislava", "Sporting CP", "Stuttgart", "Viking", "Villarreal"
+        ],
         matches: {
             "1": [
                 { "home": "AEK Athen", "away": "LASK", "date": "2026-09-08", "time": "" },
@@ -623,6 +671,7 @@
         document.getElementById('matchdayTableHeader').textContent = `Spieltag ${leagueData.currentMatchday} — Spiele & Ergebnisse`;
         
         renderMatchdayTable();
+        renderTable();
         renderBayernStats();
         if (isAdmin) renderInputForm();
     }
@@ -723,6 +772,74 @@
                 <td style="text-align: center;">${resultDisplay}</td>
                 <td class="${awayClass}">${m.away}</td>
                 <td style="text-align: center;">${deleteBtn}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderTable() {
+        let tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        let stats = {};
+        leagueData.teams.forEach(t => {
+            stats[t] = { name: t, played: 0, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
+        });
+
+        Object.values(leagueData.matches).forEach(matchList => {
+            if (!Array.isArray(matchList)) return;
+            matchList.forEach(m => {
+                if (m.homeScore === undefined || m.awayScore === undefined || !stats[m.home] || !stats[m.away]) return;
+                
+                stats[m.home].played++;
+                stats[m.away].played++;
+                stats[m.home].goalsFor += m.homeScore;
+                stats[m.home].goalsAgainst += m.awayScore;
+                stats[m.away].goalsFor += m.awayScore;
+                stats[m.away].goalsAgainst += m.homeScore;
+
+                if (m.homeScore > m.awayScore) {
+                    stats[m.home].won++;
+                    stats[m.home].points += 3;
+                    stats[m.away].lost++;
+                } else if (m.homeScore < m.awayScore) {
+                    stats[m.away].won++;
+                    stats[m.away].points += 3;
+                    stats[m.home].lost++;
+                } else {
+                    stats[m.home].draw++;
+                    stats[m.home].points += 1;
+                    stats[m.away].draw++;
+                    stats[m.away].points += 1;
+                }
+            });
+        });
+
+        let sorted = Object.values(stats).sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            let diffB = b.goalsFor - b.goalsAgainst;
+            let diffA = a.goalsFor - a.goalsAgainst;
+            if (diffB !== diffA) return diffB - diffA;
+            return b.goalsFor - a.goalsFor;
+        });
+
+        sorted.forEach((s, idx) => {
+            let tr = document.createElement('tr');
+            if (idx < 8) tr.classList.add('rank-first');
+            if (s.name === "Bayern München") tr.classList.add('bayern-team-row');
+
+            let diff = s.goalsFor - s.goalsAgainst;
+
+            tr.innerHTML = `
+                <td><strong>${idx + 1}.</strong></td>
+                <td>${s.name}</td>
+                <td style="text-align: center;">${s.played}</td>
+                <td style="text-align: center;">${s.won}</td>
+                <td style="text-align: center;">${s.draw}</td>
+                <td style="text-align: center;">${s.lost}</td>
+                <td style="text-align: center;">${s.goalsFor}:${s.goalsAgainst}</td>
+                <td style="text-align: center;">${diff > 0 ? '+' : ''}${diff}</td>
+                <td style="text-align: center; font-weight: bold;">${s.points}</td>
             `;
             tbody.appendChild(tr);
         });
