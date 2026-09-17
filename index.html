@@ -20,6 +20,7 @@
             --accent-playoff: rgba(56, 139, 253, 0.10);
             --accent-german: rgba(227, 179, 64, 0.15);
             --bayern-bright-red: #ff334b;
+            --german-yellow: #f0883e;
         }
 
         * { box-sizing: border-box; }
@@ -150,6 +151,10 @@
             color: var(--bayern-bright-red) !important; 
             font-weight: bold; 
         }
+        .german-highlight {
+            color: #f0883e !important;
+            font-weight: bold;
+        }
 
         tr.bayern-match-row {
             background: rgba(220, 5, 45, 0.12);
@@ -159,6 +164,16 @@
         tr.bayern-match-row td {
             border-top: 1px solid rgba(220, 5, 45, 0.3);
             border-bottom: 1px solid rgba(220, 5, 45, 0.3);
+        }
+
+        tr.german-match-row {
+            background: rgba(227, 179, 64, 0.08);
+            border-left: 3px solid #e3b341;
+            border-right: 3px solid #e3b341;
+        }
+        tr.german-match-row td {
+            border-top: 1px solid rgba(227, 179, 64, 0.2);
+            border-bottom: 1px solid rgba(227, 179, 64, 0.2);
         }
 
         .table-container {
@@ -431,6 +446,7 @@
 
     const ADMIN_PIN = "1919";
     let isAdmin = false;
+    const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München"];
 
     let leagueData = {
         currentMatchday: 1,
@@ -762,8 +778,10 @@
             let timeStr = m.time ? ` ${m.time} Uhr` : '';
             
             let isBayernMatch = (m.home === "Bayern München" || m.away === "Bayern München");
-            let homeClass = m.home === "Bayern München" ? 'bayern-highlight' : '';
-            let awayClass = m.away === "Bayern München" ? 'bayern-highlight' : '';
+            let isGermanMatch = (germanTeams.includes(m.home) || germanTeams.includes(m.away));
+
+            let homeClass = m.home === "Bayern München" ? 'bayern-highlight' : (germanTeams.includes(m.home) ? 'german-highlight' : '');
+            let awayClass = m.away === "Bayern München" ? 'bayern-highlight' : (germanTeams.includes(m.away) ? 'german-highlight' : '');
 
             let resultDisplay = hasResult 
                 ? `<strong>${m.homeScore}:${m.awayScore}</strong>` 
@@ -776,7 +794,11 @@
             let deleteBtn = isAdmin ? `<button class="btn-danger" onclick="deleteMatchResult(${idx})" title="Ergebnis löschen">✕</button>` : '';
 
             let tr = document.createElement('tr');
-            if (isBayernMatch) tr.classList.add('bayern-match-row');
+            if (isBayernMatch) {
+                tr.classList.add('bayern-match-row');
+            } else if (isGermanMatch) {
+                tr.classList.add('german-match-row');
+            }
 
             tr.innerHTML = `
                 <td style="font-size: 0.8rem; color: #ffffff;">${formattedDate}${timeStr}</td>
@@ -835,12 +857,9 @@
             return b.goalsFor - a.goalsFor;
         });
 
-        let germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart"];
-
         sorted.forEach((s, idx) => {
             let tr = document.createElement('tr');
             
-            // Priorität der Markierungen in der Tabelle
             if (s.name === "Bayern München") {
                 tr.classList.add('bayern-team-row');
             } else {
@@ -905,7 +924,7 @@
                         <label>Gast</label>
                         <span style="font-size: 0.8rem; font-weight: bold;">${m.away}</span>
                     </div>
-                    <div class="ns-group form-group">
+                    <div class="form-group">
                         <label>Tore Heim</label>
                         <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined ? m.homeScore : ''}" min="0">
                     </div>
