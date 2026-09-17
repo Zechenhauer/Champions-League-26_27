@@ -18,6 +18,7 @@
             --bayern-dark: #86001a;
             --accent-green: rgba(46, 160, 67, 0.12);
             --accent-playoff: rgba(56, 139, 253, 0.10);
+            --accent-german: rgba(227, 179, 64, 0.15);
             --bayern-bright-red: #ff334b;
         }
 
@@ -200,6 +201,12 @@
             background: rgba(220, 5, 45, 0.15);
             border-top: 1px solid rgba(220, 5, 45, 0.4);
             border-bottom: 1px solid rgba(220, 5, 45, 0.4);
+        }
+        tr.german-team-row td {
+            background: var(--accent-german);
+            border-left: 3px solid #e3b341;
+            font-weight: 600;
+            color: #f0f6fc;
         }
 
         /* Statistik-Grid */
@@ -398,6 +405,7 @@
         <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(46, 160, 67, 0.3); border-left: 3px solid #3fb950; border-radius: 2px; display: inline-block;"></span> Top 8 (Direktes Achtelfinale)</div>
             <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(56, 139, 253, 0.2); border-left: 3px solid #58a6ff; border-radius: 2px; display: inline-block;"></span> Plätze 9–24 (Play-offs / Zwischenrunde)</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(227, 179, 64, 0.3); border-left: 3px solid #e3b341; border-radius: 2px; display: inline-block;"></span> Andere deutsche Teams (BVB, Leipzig, Stuttgart)</div>
         </div>
     </div>
 
@@ -827,14 +835,24 @@
             return b.goalsFor - a.goalsFor;
         });
 
+        let germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart"];
+
         sorted.forEach((s, idx) => {
             let tr = document.createElement('tr');
-            if (idx < 8) {
-                tr.classList.add('rank-first');
-            } else if (idx >= 8 && idx < 24) {
-                tr.classList.add('rank-playoff');
+            
+            // Priorität der Markierungen in der Tabelle
+            if (s.name === "Bayern München") {
+                tr.classList.add('bayern-team-row');
+            } else {
+                if (idx < 8) {
+                    tr.classList.add('rank-first');
+                } else if (idx >= 8 && idx < 24) {
+                    tr.classList.add('rank-playoff');
+                }
+                if (germanTeams.includes(s.name)) {
+                    tr.classList.add('german-team-row');
+                }
             }
-            if (s.name === "Bayern München") tr.classList.add('bayern-team-row');
 
             let diff = s.goalsFor - s.goalsAgainst;
 
@@ -887,7 +905,7 @@
                         <label>Gast</label>
                         <span style="font-size: 0.8rem; font-weight: bold;">${m.away}</span>
                     </div>
-                    <div class="form-group">
+                    <div class="ns-group form-group">
                         <label>Tore Heim</label>
                         <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined ? m.homeScore : ''}" min="0">
                     </div>
