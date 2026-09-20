@@ -666,6 +666,7 @@
         }
     }
 
+    // Verbesserter Cloud-Lader: Gleicht Partien direkt über Teamnamen ab (unabhängig vom Spieltag in der DB)
     async function loadFromCloud() {
         try {
             let { data, error } = await supabaseClient
@@ -673,6 +674,7 @@
                 .select('*');
 
             if (data && Array.isArray(data)) {
+                // Vorab alle lokalen Scores zurücksetzen
                 for (let mDay in leagueData.matches) {
                     leagueData.matches[mDay].forEach(m => {
                         delete m.homeScore;
@@ -681,17 +683,25 @@
                     });
                 }
 
+                // Erstelle eine schnelle Lookup-Map für alle CL-Spiele nach Team-Paarung
+                let matchLookup = {};
+                for (let mDay in leagueData.matches) {
+                    if (Array.isArray(leagueData.matches[mDay])) {
+                        leagueData.matches[mDay].forEach(m => {
+                            let key = `${m.home.toLowerCase().trim()}__vs__${m.away.toLowerCase().trim()}`;
+                            matchLookup[key] = m;
+                        });
+                    }
+                }
+
+                // Daten aus Supabase zuordnen (abgleich über Teamnamen)
                 data.forEach(row => {
-                    let mDay = row.matchday;
-                    if (leagueData.matches[mDay]) {
-                        let matchObj = leagueData.matches[mDay].find(m => 
-                            m.home.toLowerCase().trim() === row.home_team.toLowerCase().trim() && 
-                            m.away.toLowerCase().trim() === row.away_team.toLowerCase().trim()
-                        );
-                        if (matchObj) {
-                            matchObj.homeScore = row.home_score;
-                            matchObj.awayScore = row.away_score;
-                            matchObj.goal_scorer = row.goal_scorer;
+                    if (row.home_team && row.away_team) {
+                        let key = `${row.home_team.toLowerCase().trim()}__vs__${row.away_team.toLowerCase().trim()}`;
+                        if (matchLookup[key]) {
+                            matchLookup[key].homeScore = row.home_score;
+                            matchLookup[key].awayScore = row.away_score;
+                            matchLookup[key].goal_scorer = row.goal_scorer;
                         }
                     }
                 });
