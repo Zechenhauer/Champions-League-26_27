@@ -44,6 +44,32 @@
             box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
         }
 
+        .banner-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .app-banner {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid var(--bayern-red);
+            box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .app-banner {
+                max-height: 160px;
+            }
+        }
+
         .title-row {
             display: flex;
             align-items: center;
@@ -367,6 +393,10 @@
 <body>
 
 <div class="container">
+    <div class="banner-wrapper">
+        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Teamfoto_bayern.png" alt="FC Bayern Teamfoto Banner" class="app-banner">
+    </div>
+
     <div class="title-row">
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
         <h2>FC Bayern <span>Champions League</span></h2>
@@ -666,7 +696,6 @@
         }
     }
 
-    // Verbesserter Cloud-Lader: Gleicht Partien direkt über Teamnamen ab (unabhängig vom Spieltag in der DB)
     async function loadFromCloud() {
         try {
             let { data, error } = await supabaseClient
@@ -674,7 +703,6 @@
                 .select('*');
 
             if (data && Array.isArray(data)) {
-                // Vorab alle lokalen Scores zurücksetzen
                 for (let mDay in leagueData.matches) {
                     leagueData.matches[mDay].forEach(m => {
                         delete m.homeScore;
@@ -683,7 +711,6 @@
                     });
                 }
 
-                // Erstelle eine schnelle Lookup-Map für alle CL-Spiele nach Team-Paarung
                 let matchLookup = {};
                 for (let mDay in leagueData.matches) {
                     if (Array.isArray(leagueData.matches[mDay])) {
@@ -694,7 +721,6 @@
                     }
                 }
 
-                // Daten aus Supabase zuordnen (abgleich über Teamnamen)
                 data.forEach(row => {
                     if (row.home_team && row.away_team) {
                         let key = `${row.home_team.toLowerCase().trim()}__vs__${row.away_team.toLowerCase().trim()}`;
@@ -1061,7 +1087,6 @@
         saveToCloud();
     }
 
-    // Automatische Erkennung des aktuellen Spieltags anhand des heutigen Datums
     function detectCurrentMatchday() {
         let todayStr = new Date().toISOString().split('T')[0];
         let foundMatchday = 1;
@@ -1092,7 +1117,6 @@
     leagueData.currentMatchday = detectCurrentMatchday();
     loadFromCloud();
 
-    // Auto-Refresh für Live-Tage (alle 30 Sek.)
     setInterval(() => {
         if (isAdmin) return;
 
