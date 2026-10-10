@@ -20,7 +20,6 @@
             --accent-playoff: rgba(56, 139, 253, 0.10);
             --accent-german: rgba(227, 179, 64, 0.15);
             --bayern-bright-red: #ff334b;
-            --german-yellow: #f0883e;
         }
 
         * { box-sizing: border-box; }
@@ -175,24 +174,80 @@
             font-weight: bold;
         }
 
-        tr.bayern-match-row {
-            background: rgba(220, 5, 45, 0.12);
-            border-left: 3px solid var(--bayern-red);
-            border-right: 3px solid var(--bayern-red);
+        .match-card {
+            background: #131b2e;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
         }
-        tr.bayern-match-row td {
-            border-top: 1px solid rgba(220, 5, 45, 0.3);
-            border-bottom: 1px solid rgba(220, 5, 45, 0.3);
+        .match-card.bayern-match {
+            border: 1px solid var(--bayern-red);
+            background: rgba(220, 5, 45, 0.08);
+        }
+        .match-card.german-match {
+            border: 1px solid #e3b341;
+            background: rgba(227, 179, 64, 0.05);
         }
 
-        tr.german-match-row {
-            background: rgba(227, 179, 64, 0.08);
-            border-left: 3px solid #e3b341;
-            border-right: 3px solid #e3b341;
+        .match-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
         }
-        tr.german-match-row td {
-            border-top: 1px solid rgba(227, 179, 64, 0.2);
-            border-bottom: 1px solid rgba(227, 179, 64, 0.2);
+
+        .teams-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        .team-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        .team-box.home { justify-content: flex-end; text-align: right; }
+        .team-box.away { justify-content: flex-start; text-align: left; }
+
+        .team-logo-sm {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            padding: 1px;
+        }
+
+        .goals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            background: #0b0f19;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .goals-table th {
+            background-color: #1b1622;
+            color: var(--text-muted);
+            padding: 6px 8px;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .goals-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+            white-space: nowrap;
         }
 
         .live-badge {
@@ -207,7 +262,6 @@
             font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .live-dot {
             width: 6px;
@@ -226,13 +280,13 @@
             width: 100%;
             overflow-x: auto;
         }
-        table {
+        table.standings-table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 0.85rem;
         }
-        th {
+        table.standings-table th {
             background-color: var(--bayern-dark);
             color: #ffffff;
             padding: 10px 8px;
@@ -241,21 +295,15 @@
             white-space: nowrap;
             border-bottom: 2px solid var(--bayern-red);
         }
-        td {
+        table.standings-table td {
             padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
         }
-        tr:hover { background-color: rgba(220, 5, 45, 0.03); }
+        table.standings-table tr:hover { background-color: rgba(220, 5, 45, 0.03); }
 
-        tr.rank-first td {
-            background: var(--accent-green);
-            border-left: 3px solid #3fb950;
-        }
-        tr.rank-playoff td {
-            background: var(--accent-playoff);
-            border-left: 3px solid #58a6ff;
-        }
+        tr.rank-first td { background: var(--accent-green); border-left: 3px solid #3fb950; }
+        tr.rank-playoff td { background: var(--accent-playoff); border-left: 3px solid #58a6ff; }
         tr.bayern-team-row td {
             font-weight: bold;
             color: var(--bayern-bright-red);
@@ -267,7 +315,6 @@
             background: var(--accent-german);
             border-left: 3px solid #e3b341;
             font-weight: 600;
-            color: #f0f6fc;
         }
 
         .stats-grid {
@@ -322,30 +369,6 @@
             margin-top: 15px;
             display: none;
         }
-        .match-input-card {
-            background: #131b2e;
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 2fr 2fr repeat(2, 1fr);
-            gap: 8px;
-            align-items: end;
-        }
-        @media (max-width: 900px) {
-            .form-grid { grid-template-columns: 1fr 1fr; }
-            .form-grid .form-group-team { grid-column: span 2; }
-        }
-        .form-group label {
-            display: block;
-            font-size: 0.65rem;
-            color: var(--text-muted);
-            margin-bottom: 3px;
-            text-transform: uppercase;
-        }
         .form-control {
             width: 100%;
             padding: 6px;
@@ -355,8 +378,6 @@
             border-radius: 4px;
             font-size: 0.8rem;
         }
-        .form-control:focus { border-color: var(--bayern-red); outline: none; }
-
         .btn {
             background: var(--bayern-red);
             color: #ffffff;
@@ -369,17 +390,23 @@
             font-size: 0.85rem;
             width: 100%;
             margin-top: 10px;
-            transition: background 0.2s;
         }
         .btn:hover { background: var(--bayern-red-hover); }
-        
-        .btn-danger {
-            background: transparent;
-            border: none;
+        .goal-input-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr 1fr auto;
+            gap: 6px;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+        .btn-small {
+            background: #21262d;
+            border: 1px solid var(--border-color);
             color: #f85149;
+            padding: 4px 8px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1rem;
         }
     </style>
 </head>
@@ -395,10 +422,10 @@
         <h2>FC Bayern <span>Champions League</span></h2>
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
     </div>
-    <div class="subtitle" id="leagueSubtitle">UEFA Champions League — Ligaphase Saison 2026/27</div>
+    <div class="subtitle">UEFA Champions League — Ligaphase Saison 2026/27</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Live-Sync & Smart-Refresh aktiv</span>
+        <span class="supabase-badge">● OpenLigaDB Logos & Torschützen aktiv</span>
     </div>
 
     <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
@@ -408,7 +435,7 @@
         <div style="margin-top: 15px;">
             <div style="font-size: 0.8rem; font-weight: bold; color: var(--bayern-bright-red); text-transform: uppercase; margin-bottom: 8px;">Interne Torschützenliste (CL)</div>
             <div class="table-container">
-                <table>
+                <table class="standings-table">
                     <thead>
                         <tr>
                             <th>Spieler</th>
@@ -421,35 +448,22 @@
         </div>
     </div>
 
-    <!-- SPIELTAGS-TABELLE -->
+    <!-- SPIELTAGS-LISTE -->
     <div class="section-box">
-        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele & Ergebnisse</div>
+        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele & Torschützen</div>
         <div class="matchday-controls">
             <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
             <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 1</strong>
             <button class="matchday-btn" onclick="changeMatchday(1)">Nächster Spieltag ▶</button>
         </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 140px; color: #ffffff;">Termin</th>
-                        <th style="text-align: right;">Heimmannschaft</th>
-                        <th style="text-align: center; width: 140px;">Ergebnis / Status</th>
-                        <th>Gastmannschaft</th>
-                        <th style="width: 40px; text-align: center;"></th>
-                    </tr>
-                </thead>
-                <tbody id="matchdayTableBody"></tbody>
-            </table>
-        </div>
+        <div id="matchdayMatchesContainer"></div>
     </div>
 
-    <!-- GESAMT-TABELLE (CHAMPIONS LEAGUE LIGAPHASE) -->
+    <!-- GESAMT-TABELLE -->
     <div class="section-box">
         <div class="section-header">Champions League Tabelle (Ligaphase)</div>
         <div class="table-container">
-            <table>
+            <table class="standings-table">
                 <thead>
                     <tr>
                         <th style="width: 35px;">Pl.</th>
@@ -466,21 +480,16 @@
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
-        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(46, 160, 67, 0.3); border-left: 3px solid #3fb950; border-radius: 2px; display: inline-block;"></span> Top 8 (Direktes Achtelfinale)</div>
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(56, 139, 253, 0.2); border-left: 3px solid #58a6ff; border-radius: 2px; display: inline-block;"></span> Plätze 9–24 (Play-offs / Zwischenrunde)</div>
-            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: rgba(227, 179, 64, 0.3); border-left: 3px solid #e3b341; border-radius: 2px; display: inline-block;"></span> Andere deutsche Teams (BVB, Leipzig, Stuttgart)</div>
-        </div>
     </div>
 
     <!-- ADMIN BEREICH -->
     <div class="admin-card" id="adminCard">
         <div style="font-weight: bold; color: var(--bayern-bright-red); margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>✏️ CL-Ergebnisse & Torschützen für <span id="adminMatchdayLabel">Spieltag 1</span> erfassen</span>
+            <span>✏️ Detaillierte Torschützen & Tore für <span id="adminMatchdayLabel">Spieltag 1</span></span>
             <span style="font-size: 0.7rem; color: #3fb950;">● Admin-Modus Aktiv</span>
         </div>
         <div id="matchInputsContainer"></div>
-        <button class="btn" onclick="saveAllMatches()">Alle Ergebnisse & Torschützen speichern</button>
+        <button class="btn" onclick="saveAllMatches()">Alle Spiel-Details in Supabase speichern</button>
     </div>
 
     <div class="admin-toggle-wrapper">
@@ -495,188 +504,88 @@
 
     const ADMIN_PIN = "1919";
     let isAdmin = false;
-    const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München"];
+    const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München", "Bayer Leverkusen"];
 
     let leagueData = {
         currentMatchday: 1,
-        teams: [
-            "AEK Athen", "Ajax", "Arsenal", "Aston Villa", "Atlético de Madrid", "Barcelona", 
-            "Bayern München", "Bodø/Glimt", "Borussia Dortmund", "Club Brugge", "Como", 
-            "Fenerbahçe", "Feyenoord", "Galatasaray", "Inter", "LASK", "Leipzig", "Lens", 
-            "Lille", "Liverpool", "Manchester City", "Manchester United", "Napoli", "Paris Saint-Germain", 
-            "Porto", "PSV Eindhoven", "Real Betis", "Real Madrid", "Roma", "Sabah", "Shakhtar Donetsk", 
-            "Slavia Praha", "Slovan Bratislava", "Sporting CP", "Stuttgart", "Viking", "Villarreal"
-        ],
-        matches: {
-            "1": [
-                { "home": "AEK Athen", "away": "LASK", "date": "2026-09-08", "time": "18:45" },
-                { "home": "Club Brugge", "away": "Aston Villa", "date": "2026-09-08", "time": "18:45" },
-                { "home": "Borussia Dortmund", "away": "Villarreal", "date": "2026-09-08", "time": "21:00" },
-                { "home": "Porto", "away": "Manchester City", "date": "2026-09-08", "time": "21:00" },
-                { "home": "Lille", "away": "Real Betis", "date": "2026-09-08", "time": "21:00" },
-                { "home": "Real Madrid", "away": "Inter", "date": "2026-09-08", "time": "21:00" },
-                { "home": "Barcelona", "away": "Feyenoord", "date": "2026-09-09", "time": "18:45" },
-                { "home": "Stuttgart", "away": "Viking", "date": "2026-09-09", "time": "18:45" },
-                { "home": "Liverpool", "away": "Atlético de Madrid", "date": "2026-09-09", "time": "21:00" },
-                { "home": "Paris Saint-Germain", "away": "Slovan Bratislava", "date": "2026-09-09", "time": "21:00" },
-                { "home": "Sporting CP", "away": "Galatasaray", "date": "2026-09-09", "time": "21:00" },
-                { "home": "Napoli", "away": "Arsenal", "date": "2026-09-09", "time": "21:00" },
-                { "home": "Fenerbahçe", "away": "Roma", "date": "2026-09-10", "time": "18:45" },
-                { "home": "PSV Eindhoven", "away": "Shakhtar Donetsk", "date": "2026-09-10", "time": "18:45" },
-                { "home": "Como", "away": "Leipzig", "date": "2026-09-10", "time": "21:00" },
-                { "home": "Bayern München", "away": "Bodø/Glimt", "date": "2026-09-10", "time": "21:00" },
-                { "home": "Manchester United", "away": "Sabah", "date": "2026-09-10", "time": "21:00" },
-                { "home": "Slavia Praha", "away": "Lens", "date": "2026-09-10", "time": "21:00" }
-            ],
-            "2": [
-                { "home": "Lens", "away": "Sporting CP", "date": "2026-10-13", "time": "18:45" },
-                { "home": "Sabah", "away": "Slavia Praha", "date": "2026-10-13", "time": "18:45" },
-                { "home": "Arsenal", "away": "Lille", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Atlético de Madrid", "away": "Manchester United", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Inter", "away": "Club Brugge", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Galatasaray", "away": "Barcelona", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Leipzig", "away": "PSV Eindhoven", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Viking", "away": "Bayern München", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Villarreal", "away": "Napoli", "date": "2026-10-13", "time": "21:00" },
-                { "home": "Feyenoord", "away": "Como", "date": "2026-10-14", "time": "18:45" },
-                { "home": "LASK", "away": "Liverpool", "date": "2026-10-14", "time": "18:45" },
-                { "home": "Roma", "away": "Real Madrid", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Aston Villa", "away": "Fenerbahçe", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Shakhtar Donetsk", "away": "AEK Athen", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Bodø/Glimt", "away": "Borussia Dortmund", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Manchester City", "away": "Paris Saint-Germain", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Real Betis", "away": "Porto", "date": "2026-10-14", "time": "21:00" },
-                { "home": "Slovan Bratislava", "away": "Stuttgart", "date": "2026-10-14", "time": "21:00" }
-            ],
-            "3": [
-                { "home": "Fenerbahçe", "away": "Slavia Praha", "date": "2026-10-20", "time": "18:45" },
-                { "home": "Sabah", "away": "Borussia Dortmund", "date": "2026-10-20", "time": "18:45" },
-                { "home": "Roma", "away": "Slovan Bratislava", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Porto", "away": "PSV Eindhoven", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Liverpool", "away": "Villarreal", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Manchester City", "away": "AEK Athen", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Paris Saint-Germain", "away": "Barcelona", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Napoli", "away": "Bodø/Glimt", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Stuttgart", "away": "Atlético de Madrid", "date": "2026-10-20", "time": "21:00" },
-                { "home": "Como", "away": "Manchester United", "date": "2026-10-21", "time": "18:45" },
-                { "home": "Lille", "away": "Galatasaray", "date": "2026-10-21", "time": "18:45" },
-                { "home": "Aston Villa", "away": "Viking", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Club Brugge", "away": "Lens", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Bayern München", "away": "Arsenal", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Inter", "away": "Shakhtar Donetsk", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Real Madrid", "away": "Leipzig", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Real Betis", "away": "Feyenoord", "date": "2026-10-21", "time": "21:00" },
-                { "home": "Sporting CP", "away": "LASK", "date": "2026-10-21", "time": "21:00" }
-            ],
-            "4": [
-                { "home": "Shakhtar Donetsk", "away": "Sporting CP", "date": "2026-11-03", "time": "18:45" },
-                { "home": "Galatasaray", "away": "Stuttgart", "date": "2026-11-03", "time": "18:45" },
-                { "home": "Atlético de Madrid", "away": "Bayern München", "date": "2026-11-03", "time": "21:00" },
-                { "home": "Barcelona", "away": "Aston Villa", "date": "2026-11-03", "time": "21:00" },
-                { "home": "Feyenoord", "away": "Inter", "date": "2026-11-03", "time": "21:00" },
-                { "home": "Bodø/Glimt", "away": "Lille", "date": "2026-11-03", "time": "21:00" },
-                { "home": "LASK", "away": "Slovan Bratislava", "date": "2026-11-03", "time": "21:00" },
-                { "home": "Manchester United", "away": "Roma", "date": "2026-11-03", "time": "21:00" },
-                { "home": "Villarreal", "away": "Paris Saint-Germain", "date": "2026-11-03", "time": "21:00" },
-                { "home": "AEK Athen", "away": "Real Madrid", "date": "2026-11-04", "time": "18:45" },
-                { "home": "Fenerbahçe", "away": "Liverpool", "date": "2026-11-04", "time": "18:45" },
-                { "home": "Borussia Dortmund", "away": "Real Betis", "date": "2026-11-04", "time": "21:00" },
-                { "home": "Porto", "away": "Napoli", "date": "2026-11-04", "time": "21:00" },
-                { "home": "PSV Eindhoven", "away": "Club Brugge", "date": "2026-11-04", "time": "21:00" },
-                { "home": "Leipzig", "away": "Manchester City", "date": "2026-11-04", "time": "21:00" },
-                { "home": "Lens", "away": "Como", "date": "2026-11-04", "time": "21:00" },
-                { "home": "Slavia Praha", "away": "Arsenal", "date": "2026-11-04", "time": "21:00" },
-                { "home": "Viking", "away": "Sabah", "date": "2026-11-04", "time": "21:00" }
-            ],
-            "5": [
-                { "home": "Bodø/Glimt", "away": "LASK", "date": "2026-11-24", "time": "18:45" },
-                { "home": "Galatasaray", "away": "Aston Villa", "date": "2026-11-24", "time": "18:45" },
-                { "home": "Arsenal", "away": "Borussia Dortmund", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Como", "away": "AEK Athen", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Feyenoord", "away": "Porto", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Manchester City", "away": "Napoli", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Leipzig", "away": "Lens", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Real Madrid", "away": "PSV Eindhoven", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Slovan Bratislava", "away": "Real Betis", "date": "2026-11-24", "time": "21:00" },
-                { "home": "Sabah", "away": "Barcelona", "date": "2026-11-25", "time": "18:45" },
-                { "home": "Slavia Praha", "away": "Villarreal", "date": "2026-11-25", "time": "18:45" },
-                { "home": "Atlético de Madrid", "away": "Viking", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Club Brugge", "away": "Liverpool", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Inter", "away": "Stuttgart", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Shakhtar Donetsk", "away": "Fenerbahçe", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Lille", "away": "Bayern München", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Paris Saint-Germain", "away": "Roma", "date": "2026-11-25", "time": "21:00" },
-                { "home": "Sporting CP", "away": "Manchester United", "date": "2026-11-25", "time": "21:00" }
-            ],
-            "6": [
-                { "home": "Viking", "away": "Feyenoord", "date": "2026-12-08", "time": "18:45" },
-                { "home": "Villarreal", "away": "Sabah", "date": "2026-12-08", "time": "18:45" },
-                { "home": "AEK Athen", "away": "Galatasaray", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Roma", "away": "Sporting CP", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Aston Villa", "away": "Paris Saint-Germain", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Barcelona", "away": "Manchester City", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Bayern München", "away": "Slavia Praha", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Manchester United", "away": "Leipzig", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Napoli", "away": "Club Brugge", "date": "2026-12-08", "time": "21:00" },
-                { "home": "Real Betis", "away": "Como", "date": "2026-12-09", "time": "18:45" },
-                { "home": "Slovan Bratislava", "away": "Shakhtar Donetsk", "date": "2026-12-09", "time": "18:45" },
-                { "home": "Arsenal", "away": "Real Madrid", "date": "2026-12-09", "time": "21:00" },
-                { "home": "Borussia Dortmund", "away": "Inter", "date": "2026-12-09", "time": "21:00" },
-                { "home": "LASK", "away": "Fenerbahçe", "date": "2026-12-09", "time": "21:00" },
-                { "home": "Liverpool", "away": "Porto", "date": "2026-12-09", "time": "21:00" },
-                { "home": "PSV Eindhoven", "away": "Atlético de Madrid", "date": "2026-12-09", "time": "21:00" },
-                { "home": "Lens", "away": "Bodø/Glimt", "date": "2026-12-09", "time": "21:00" },
-                { "home": "Stuttgart", "away": "Lille", "date": "2026-12-09", "time": "21:00" }
-            ],
-            "7": [
-                { "home": "Bodø/Glimt", "away": "Atlético de Madrid", "date": "2027-01-19", "time": "18:45" },
-                { "home": "Galatasaray", "away": "Feyenoord", "date": "2027-01-19", "time": "18:45" },
-                { "home": "AEK Athen", "away": "Roma", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Aston Villa", "away": "Borussia Dortmund", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Inter", "away": "Liverpool", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Porto", "away": "Slavia Praha", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Lille", "away": "Slovan Bratislava", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Real Madrid", "away": "LASK", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Stuttgart", "away": "Club Brugge", "date": "2027-01-19", "time": "21:00" },
-                { "home": "Fenerbahçe", "away": "Villarreal", "date": "2027-01-20", "time": "18:45" },
-                { "home": "Sabah", "away": "Napoli", "date": "2027-01-20", "time": "18:45" },
-                { "home": "Como", "away": "Paris Saint-Germain", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Manchester United", "away": "Bayern München", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Leipzig", "away": "Shakhtar Donetsk", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Lens", "away": "Manchester City", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Real Betis", "away": "Arsenal", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Sporting CP", "away": "Barcelona", "date": "2027-01-20", "time": "21:00" },
-                { "home": "Viking", "away": "PSV Eindhoven", "date": "2027-01-20", "time": "21:00" }
-            ],
-            "8": [
-                { "home": "Arsenal", "away": "Sabah", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Roma", "away": "Lille", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Atlético de Madrid", "away": "Fenerbahçe", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Borussia Dortmund", "away": "AEK Athen", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Club Brugge", "away": "Bodø/Glimt", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Bayern München", "away": "Real Betis", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Barcelona", "away": "Como", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Shakhtar Donetsk", "away": "Real Madrid", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Feyenoord", "away": "Leipzig", "date": "2027-01-27", "time": "21:00" },
-                { "home": "LASK", "away": "Porto", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Liverpool", "away": "Lens", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Manchester City", "away": "Sporting CP", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Paris Saint-Germain", "away": "Galatasaray", "date": "2027-01-27", "time": "21:00" },
-                { "home": "PSV Eindhoven", "away": "Stuttgart", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Slavia Praha", "away": "Aston Villa", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Napoli", "away": "Viking", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Villarreal", "away": "Manchester United", "date": "2027-01-27", "time": "21:00" },
-                { "home": "Slovan Bratislava", "away": "Inter", "date": "2027-01-27", "time": "21:00" }
-            ]
-        }
+        teams: {}, // Map von Teamname -> LogoUrl
+        matches: {}
     };
+
+    async function loadOpenLigaData() {
+        try {
+            let response = await fetch('https://api.openligadb.de/getmatchdata/ucl/2026');
+            let data = await response.json();
+            
+            if (Array.isArray(data) && data.length > 0) {
+                let formattedMatches = {};
+
+                data.forEach(match => {
+                    let mDay = match.group && match.group.groupOrderID ? match.group.groupOrderID : 1;
+                    if (!formattedMatches[mDay]) formattedMatches[mDay] = [];
+
+                    let homeTeam = match.team1.teamName;
+                    let awayTeam = match.team2.teamName;
+                    let homeLogo = match.team1.teamIconUrl || '';
+                    let awayLogo = match.team2.teamIconUrl || '';
+
+                    leagueData.teams[homeTeam] = homeLogo;
+                    leagueData.teams[awayTeam] = awayLogo;
+
+                    let homeScore = null;
+                    let awayScore = null;
+                    if (match.matchIsFinished && match.matchResults && match.matchResults.length > 0) {
+                        let finalResult = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length - 1];
+                        if (finalResult) {
+                            homeScore = finalResult.pointsTeam1;
+                            awayScore = finalResult.pointsTeam2;
+                        }
+                    }
+
+                    let goalsList = [];
+                    if (match.goals && Array.isArray(match.goals)) {
+                        match.goals.forEach(g => {
+                            goalsList.push({
+                                score: `${g.scoreTeam1}:${g.scoreTeam2}`,
+                                scorer: g.goalGetterName || 'Unbekannt',
+                                minute: g.matchMinute || '',
+                                comment: g.comment || '',
+                                resultType: g.isPenalty ? 'Elfmeter' : (g.isOwnGoal ? 'Eigentor' : '')
+                            });
+                        });
+                    }
+
+                    let matchDate = match.matchDateTime ? match.matchDateTime.split('T')[0] : '';
+                    let matchTime = match.matchDateTime ? match.matchDateTime.split('T')[1].substring(0, 5) : '';
+
+                    formattedMatches[mDay].push({
+                        home: homeTeam,
+                        away: awayTeam,
+                        homeLogo: homeLogo,
+                        awayLogo: awayLogo,
+                        date: matchDate,
+                        time: matchTime,
+                        homeScore: homeScore,
+                        awayScore: awayScore,
+                        goals: goalsList
+                    });
+                });
+
+                leagueData.matches = formattedMatches;
+            }
+        } catch (e) {
+            console.log("OpenLigaDB Ladefehler:", e);
+        }
+
+        await loadFromCloud();
+    }
 
     function toggleAdminMode() {
         const adminCard = document.getElementById('adminCard');
         if (isAdmin) {
             isAdmin = false;
             adminCard.style.display = 'none';
-            renderMatchdayTable();
+            renderAll();
             return;
         }
         let enteredPin = prompt("Bitte Admin-PIN eingeben:");
@@ -691,42 +600,36 @@
 
     async function loadFromCloud() {
         try {
-            let { data, error } = await supabaseClient
-                .from('cl_spiele')
-                .select('*');
-
+            let { data, error } = await supabaseClient.from('cl_spiele').select('*');
             if (data && Array.isArray(data)) {
-                for (let mDay in leagueData.matches) {
-                    leagueData.matches[mDay].forEach(m => {
-                        delete m.homeScore;
-                        delete m.awayScore;
-                        delete m.goal_scorer;
-                    });
-                }
-
                 let matchLookup = {};
                 for (let mDay in leagueData.matches) {
-                    if (Array.isArray(leagueData.matches[mDay])) {
-                        leagueData.matches[mDay].forEach(m => {
-                            let key = `${m.home.toLowerCase().trim()}__vs__${m.away.toLowerCase().trim()}`;
-                            matchLookup[key] = m;
-                        });
-                    }
+                    leagueData.matches[mDay].forEach(m => {
+                        let key = `${m.home.toLowerCase().trim()}__vs__${m.away.toLowerCase().trim()}`;
+                        matchLookup[key] = m;
+                    });
                 }
 
                 data.forEach(row => {
                     if (row.home_team && row.away_team) {
                         let key = `${row.home_team.toLowerCase().trim()}__vs__${row.away_team.toLowerCase().trim()}`;
                         if (matchLookup[key]) {
-                            matchLookup[key].homeScore = row.home_score;
-                            matchLookup[key].awayScore = row.away_score;
-                            matchLookup[key].goal_scorer = row.goal_scorer;
+                            if (row.home_score !== null && row.home_score !== undefined) matchLookup[key].homeScore = row.home_score;
+                            if (row.away_score !== null && row.away_score !== undefined) matchLookup[key].awayScore = row.away_score;
+                            if (row.goals_json) {
+                                try { matchLookup[key].goals = JSON.parse(row.goals_json); } catch(err){}
+                            }
                         }
                     }
                 });
             }
         } catch (e) {
-            console.log('Supabase Ladehinweis:', e);
+            console.log('Supabase Sync-Hinweis:', e);
+        }
+
+        if (!window.initialMatchdayDetected) {
+            leagueData.currentMatchday = detectCurrentMatchday();
+            window.initialMatchdayDetected = true;
         }
         renderAll();
     }
@@ -734,12 +637,10 @@
     async function saveToCloud() {
         try {
             let rowsToUpsert = [];
-
             for (let mDay in leagueData.matches) {
                 leagueData.matches[mDay].forEach(m => {
                     if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
                         let matchIdStr = "cl_" + mDay + "_" + m.home.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") + "_vs_" + m.away.trim().toLowerCase().replace(/[^a-z0-9]/g, "_");
-                        
                         rowsToUpsert.push({
                             match_id: matchIdStr,
                             matchday: parseInt(mDay),
@@ -747,21 +648,14 @@
                             away_team: m.away,
                             home_score: parseInt(m.homeScore),
                             away_score: parseInt(m.awayScore),
-                            goal_scorer: m.goal_scorer || ""
+                            goals_json: JSON.stringify(m.goals || [])
                         });
                     }
                 });
             }
 
             if (rowsToUpsert.length > 0) {
-                let { error } = await supabaseClient
-                    .from('cl_spiele')
-                    .upsert(rowsToUpsert, { onConflict: 'match_id' });
-                
-                if (error) {
-                    console.error('Supabase Speicherfehler:', error.message);
-                    alert('Fehler beim Speichern in Supabase: ' + error.message);
-                }
+                await supabaseClient.from('cl_spiele').upsert(rowsToUpsert, { onConflict: 'match_id' });
             }
         } catch (e) {
             console.error('Speicherfehler:', e);
@@ -769,16 +663,17 @@
     }
 
     function changeMatchday(amount) {
-        leagueData.currentMatchday = Math.max(1, Math.min(8, leagueData.currentMatchday + amount));
+        let maxDay = Object.keys(leagueData.matches).length || 8;
+        leagueData.currentMatchday = Math.max(1, Math.min(maxDay, leagueData.currentMatchday + amount));
         renderAll();
     }
 
     function renderAll() {
         document.getElementById('matchdayDisplay').textContent = `Spieltag ${leagueData.currentMatchday}`;
         document.getElementById('adminMatchdayLabel').textContent = `Spieltag ${leagueData.currentMatchday}`;
-        document.getElementById('matchdayTableHeader').textContent = `Spieltag ${leagueData.currentMatchday} — Spiele & Ergebnisse`;
+        document.getElementById('matchdayTableHeader').textContent = `Spieltag ${leagueData.currentMatchday} — Spiele & Torschützen`;
         
-        renderMatchdayTable();
+        renderMatchdayCards();
         renderTable();
         renderBayernStats();
         if (isAdmin) renderInputForm();
@@ -791,8 +686,8 @@
         Object.values(leagueData.matches).forEach(matchList => {
             if (!Array.isArray(matchList)) return;
             matchList.forEach(m => {
-                let isHome = m.home === "Bayern München";
-                let isAway = m.away === "Bayern München";
+                let isHome = m.home.includes("Bayern");
+                let isAway = m.away.includes("Bayern");
                 if (!isHome && !isAway) return;
 
                 if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
@@ -806,15 +701,10 @@
                     else if (myGoals === oppGoals) { draw++; points += 1; }
                     else { lost++; }
 
-                    if (m.goal_scorer && m.goal_scorer.trim() !== "") {
-                        let parts = m.goal_scorer.split(',');
-                        parts.forEach(p => {
-                            p = p.trim();
-                            let matchNum = p.match(/\((\d+)\)/);
-                            let count = matchNum ? parseInt(matchNum[1]) : 1;
-                            let name = p.replace(/\s*\(\d+\)/, '').trim();
-                            if (name) {
-                                scorerMap[name] = (scorerMap[name] || 0) + count;
+                    if (m.goals && Array.isArray(m.goals)) {
+                        m.goals.forEach(g => {
+                            if (g.scorer) {
+                                scorerMap[g.scorer] = (scorerMap[g.scorer] || 0) + 1;
                             }
                         });
                     }
@@ -860,9 +750,9 @@
         }
     }
 
-    function renderMatchdayTable() {
-        let tbody = document.getElementById('matchdayTableBody');
-        tbody.innerHTML = '';
+    function renderMatchdayCards() {
+        let container = document.getElementById('matchdayMatchesContainer');
+        container.innerHTML = '';
         let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
 
         existingMatches.forEach((m, idx) => {
@@ -870,60 +760,80 @@
             let formattedDate = m.date ? m.date.split('-').reverse().join('.') : '-';
             let timeStr = m.time ? ` ${m.time} Uhr` : '';
             
-            let isBayernMatch = (m.home === "Bayern München" || m.away === "Bayern München");
-            let isGermanMatch = (germanTeams.includes(m.home) || germanTeams.includes(m.away));
+            let isBayernMatch = m.home.includes("Bayern") || m.away.includes("Bayern");
+            let isGermanMatch = germanTeams.some(t => m.home.includes(t) || m.away.includes(t));
 
-            let homeClass = m.home === "Bayern München" ? 'bayern-highlight' : (germanTeams.includes(m.home) ? 'german-highlight' : '');
-            let awayClass = m.away === "Bayern München" ? 'bayern-highlight' : (germanTeams.includes(m.away) ? 'german-highlight' : '');
+            let card = document.createElement('div');
+            card.className = 'match-card';
+            if (isBayernMatch) card.classList.add('bayern-match');
+            else if (isGermanMatch) card.classList.add('german-match');
+
+            let homeClass = m.home.includes("Bayern") ? 'bayern-highlight' : (germanTeams.some(t => m.home.includes(t)) ? 'german-highlight' : '');
+            let awayClass = m.away.includes("Bayern") ? 'bayern-highlight' : (germanTeams.some(t => m.away.includes(t)) ? 'german-highlight' : '');
 
             let liveNow = isMatchLive(m.date, m.time);
+            let scoreText = hasResult ? `<strong>${m.homeScore}:${m.awayScore}</strong>` : `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
+            if (liveNow) scoreText += ` <span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
 
-            let resultDisplay = '';
-            if (hasResult) {
-                if (liveNow) {
-                    resultDisplay = `<strong>${m.homeScore}:${m.awayScore}</strong> <span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
-                } else {
-                    resultDisplay = `<strong>${m.homeScore}:${m.awayScore}</strong>`;
-                }
-            } else {
-                if (liveNow) {
-                    resultDisplay = `<span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
-                } else {
-                    resultDisplay = `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
-                }
+            let homeLogoImg = m.homeLogo ? `<img src="${m.homeLogo}" class="team-logo-sm">` : '';
+            let awayLogoImg = m.awayLogo ? `<img src="${m.awayLogo}" class="team-logo-sm">` : '';
+
+            let goalsTableHtml = '';
+            if (hasResult && m.goals && m.goals.length > 0) {
+                let rows = m.goals.map(g => `
+                    <tr>
+                        <td style="width: 50px; font-weight: bold;">${g.score}</td>
+                        <td>${g.scorer}</td>
+                        <td style="width: 60px; text-align: center;">${g.minute}'</td>
+                        <td style="width: 100px; text-align: right; color: var(--text-muted);">${g.resultType || ''}</td>
+                    </tr>
+                `).join('');
+
+                goalsTableHtml = `
+                    <table class="goals-table">
+                        <thead>
+                            <tr>
+                                <th>Erg.</th>
+                                <th>Torschütze</th>
+                                <th style="text-align: center;">Min.</th>
+                                <th style="text-align: right;">Typ</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                `;
             }
 
-            if (hasResult && m.goal_scorer && m.goal_scorer.trim() !== "") {
-                resultDisplay += `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">⚽ ${m.goal_scorer}</div>`;
-            }
-
-            let deleteBtn = isAdmin ? `<button class="btn-danger" onclick="deleteMatchResult(${idx})" title="Ergebnis löschen">✕</button>` : '';
-
-            let tr = document.createElement('tr');
-            if (isBayernMatch) {
-                tr.classList.add('bayern-match-row');
-            } else if (isGermanMatch) {
-                tr.classList.add('german-match-row');
-            }
-
-            tr.innerHTML = `
-                <td style="font-size: 0.8rem; color: #ffffff;">${formattedDate}${timeStr}</td>
-                <td class="${homeClass}" style="text-align: right;">${m.home}</td>
-                <td style="text-align: center;">${resultDisplay}</td>
-                <td class="${awayClass}">${m.away}</td>
-                <td style="text-align: center;">${deleteBtn}</td>
+            card.innerHTML = `
+                <div class="match-header-row">
+                    <span>📅 ${formattedDate}${timeStr}</span>
+                    <span>${hasResult ? 'Beendet' : (liveNow ? 'Läuft' : 'Ausstehend')}</span>
+                </div>
+                <div class="teams-row">
+                    <div class="team-box home">
+                        <span class="${homeClass}">${m.home}</span>
+                        ${homeLogoImg}
+                    </div>
+                    <span style="padding: 0 15px; text-align: center; min-width: 90px;">${scoreText}</span>
+                    <div class="team-box away">
+                        ${awayLogoImg}
+                        <span class="${awayClass}">${m.away}</span>
+                    </div>
+                </div>
+                ${goalsTableHtml}
             `;
-            tbody.appendChild(tr);
+            container.appendChild(card);
         });
     }
 
     function renderTable() {
         let tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
+        if (!leagueData.teams || Object.keys(leagueData.teams).length === 0) return;
 
         let stats = {};
-        leagueData.teams.forEach(t => {
-            stats[t] = { name: t, played: 0, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 };
+        Object.keys(leagueData.teams).forEach(t => {
+            stats[t] = { name: t, played: 0, won: 0, draw: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0, logo: leagueData.teams[t] };
         });
 
         Object.values(leagueData.matches).forEach(matchList => {
@@ -939,18 +849,11 @@
                 stats[m.away].goalsAgainst += m.homeScore;
 
                 if (m.homeScore > m.awayScore) {
-                    stats[m.home].won++;
-                    stats[m.home].points += 3;
-                    stats[m.away].lost++;
+                    stats[m.home].won++; stats[m.home].points += 3; stats[m.away].lost++;
                 } else if (m.homeScore < m.awayScore) {
-                    stats[m.away].won++;
-                    stats[m.away].points += 3;
-                    stats[m.home].lost++;
+                    stats[m.away].won++; stats[m.away].points += 3; stats[m.home].lost++;
                 } else {
-                    stats[m.home].draw++;
-                    stats[m.home].points += 1;
-                    stats[m.away].draw++;
-                    stats[m.away].points += 1;
+                    stats[m.home].draw++; stats[m.home].points += 1; stats[m.away].draw++; stats[m.away].points += 1;
                 }
             });
         });
@@ -965,25 +868,19 @@
 
         sorted.forEach((s, idx) => {
             let tr = document.createElement('tr');
-            
-            if (s.name === "Bayern München") {
-                tr.classList.add('bayern-team-row');
-            } else {
-                if (idx < 8) {
-                    tr.classList.add('rank-first');
-                } else if (idx >= 8 && idx < 24) {
-                    tr.classList.add('rank-playoff');
-                }
-                if (germanTeams.includes(s.name)) {
-                    tr.classList.add('german-team-row');
-                }
+            if (s.name.includes("Bayern")) tr.classList.add('bayern-team-row');
+            else {
+                if (idx < 8) tr.classList.add('rank-first');
+                else if (idx >= 8 && idx < 24) tr.classList.add('rank-playoff');
+                if (germanTeams.some(t => s.name.includes(t))) tr.classList.add('german-team-row');
             }
 
             let diff = s.goalsFor - s.goalsAgainst;
+            let logoImg = s.logo ? `<img src="${s.logo}" class="team-logo-sm" style="vertical-align: middle; margin-right: 6px;">` : '';
 
             tr.innerHTML = `
                 <td><strong>${idx + 1}.</strong></td>
-                <td>${s.name}</td>
+                <td>${logoImg}${s.name}</td>
                 <td style="text-align: center;">${s.played}</td>
                 <td style="text-align: center;">${s.won}</td>
                 <td style="text-align: center;">${s.draw}</td>
@@ -1003,42 +900,54 @@
 
         existingMatches.forEach((m, idx) => {
             let card = document.createElement('div');
-            card.className = 'match-input-card';
+            card.className = 'match-card';
             
-            let scorersInputHtml = `
-                <div class="form-group" style="grid-column: span 2; margin-top: 6px;">
-                    <label>Torschützen eintragen</label>
-                    <input type="text" id="bs_${idx}" class="form-control" value="${m.goal_scorer || ''}" placeholder="Torschützen eintragen...">
-                </div>
-            `;
+            let goalsRowsHtml = '';
+            if (m.goals && m.goals.length > 0) {
+                m.goals.forEach((g, gIdx) => {
+                    goalsRowsHtml += `
+                        <div class="goal-input-row" id="g_row_${idx}_${gIdx}">
+                            <input type="text" class="form-control" placeholder="1:0" value="${g.score}" id="gs_sc_${idx}_${gIdx}">
+                            <input type="text" class="form-control" placeholder="Torschütze" value="${g.scorer}" id="gs_name_${idx}_${gIdx}">
+                            <input type="number" class="form-control" placeholder="Min" value="${g.minute}" id="gs_min_${idx}_${gIdx}">
+                            <input type="text" class="form-control" placeholder="Typ (z.B. Elfmeter)" value="${g.resultType || ''}" id="gs_type_${idx}_${gIdx}">
+                            <button class="btn-small" onclick="removeGoalRow(${idx}, ${gIdx})">✕</button>
+                        </div>
+                    `;
+                });
+            }
 
             card.innerHTML = `
-                <div style="font-size: 0.8rem; color: var(--bayern-bright-red); font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between;">
-                    <span>Partie ${idx + 1}</span>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">${m.date ? m.date.split('-').reverse().join('.') : ''} ${m.time ? m.time + ' Uhr' : ''}</span>
+                <div style="font-weight: bold; margin-bottom: 8px;">${m.home} vs ${m.away}</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">Tore Heim</label>
+                        <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : ''}">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.65rem; color: var(--text-muted);">Tore Gast</label>
+                        <input type="number" id="as_${idx}" class="form-control" value="${m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : ''}">
+                    </div>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group form-group-team">
-                        <label>Heim</label>
-                        <span style="font-size: 0.8rem; font-weight: bold;">${m.home}</span>
-                    </div>
-                    <div class="form-group form-group-team">
-                        <label>Gast</label>
-                        <span style="font-size: 0.8rem; font-weight: bold;">${m.away}</span>
-                    </div>
-                    <div class="form-group">
-                        <label>Tore Heim</label>
-                        <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : ''}" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Tore Gast</label>
-                        <input type="number" id="as_${idx}" class="form-control" value="${m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : ''}" min="0">
-                    </div>
-                    ${scorersInputHtml}
-                </div>
+                <div style="font-size: 0.75rem; font-weight: bold; margin-bottom: 5px; color: var(--bayern-bright-red);">Tore & Torschützen:</div>
+                <div id="goalsListContainer_${idx}">${goalsRowsHtml}</div>
+                <button class="matchday-btn" style="margin-top: 6px; font-size: 0.75rem;" onclick="addGoalRow(${idx})">+ Tor hinzufügen</button>
             `;
             container.appendChild(card);
         });
+    }
+
+    function addGoalRow(matchIdx) {
+        if (!leagueData.matches[leagueData.currentMatchday][matchIdx].goals) {
+            leagueData.matches[leagueData.currentMatchday][matchIdx].goals = [];
+        }
+        leagueData.matches[leagueData.currentMatchday][matchIdx].goals.push({ score: '', scorer: '', minute: '', resultType: '' });
+        renderInputForm();
+    }
+
+    function removeGoalRow(matchIdx, goalIdx) {
+        leagueData.matches[leagueData.currentMatchday][matchIdx].goals.splice(goalIdx, 1);
+        renderInputForm();
     }
 
     async function saveAllMatches() {
@@ -1046,38 +955,32 @@
         for (let idx = 0; idx < existingMatches.length; idx++) {
             let hsVal = document.getElementById(`hs_${idx}`).value;
             let asVal = document.getElementById(`as_${idx}`).value;
-            let bsInput = document.getElementById(`bs_${idx}`);
 
             if (hsVal !== '' && asVal !== '') {
                 existingMatches[idx].homeScore = parseInt(hsVal);
                 existingMatches[idx].awayScore = parseInt(asVal);
-                if (bsInput) {
-                    existingMatches[idx].goal_scorer = bsInput.value;
-                }
             } else {
                 delete existingMatches[idx].homeScore;
                 delete existingMatches[idx].awayScore;
-                delete existingMatches[idx].goal_scorer;
             }
+
+            let updatedGoals = [];
+            let goalRows = document.querySelectorAll(`#goalsListContainer_${idx} .goal-input-row`);
+            goalRows.forEach((row, gIdx) => {
+                let sc = document.getElementById(`gs_sc_${idx}_${gIdx}`).value;
+                let name = document.getElementById(`gs_name_${idx}_${gIdx}`).value;
+                let min = document.getElementById(`gs_min_${idx}_${gIdx}`).value;
+                let type = document.getElementById(`gs_type_${idx}_${gIdx}`).value;
+                if (sc || name) {
+                    updatedGoals.push({ score: sc, scorer: name, minute: min, resultType: type });
+                }
+            });
+            existingMatches[idx].goals = updatedGoals;
         }
+
         renderAll();
         await saveToCloud();
-        await loadFromCloud();
-    }
-
-    function deleteMatchResult(idx) {
-        let existingMatches = leagueData.matches[leagueData.currentMatchday];
-        if (existingMatches && existingMatches[idx]) {
-            delete existingMatches[idx].homeScore;
-            delete existingMatches[idx].awayScore;
-            delete existingMatches[idx].goal_scorer;
-            saveAndSync();
-        }
-    }
-
-    function saveAndSync() {
-        renderAll();
-        saveToCloud();
+        alert("Spieldetails & Torschützen erfolgreich gespeichert!");
     }
 
     function detectCurrentMatchday() {
@@ -1092,11 +995,7 @@
                     let matchDate = new Date(m.date);
                     let todayDate = new Date(todayStr);
                     let diffDays = (matchDate - todayDate) / (1000 * 60 * 60 * 24);
-
-                    if (m.date === todayStr) {
-                        return parseInt(mDay);
-                    }
-
+                    if (m.date === todayStr) return parseInt(mDay);
                     if (diffDays >= 0 && diffDays < smallestDiff) {
                         smallestDiff = diffDays;
                         foundMatchday = parseInt(mDay);
@@ -1107,20 +1006,8 @@
         return foundMatchday;
     }
 
-    leagueData.currentMatchday = detectCurrentMatchday();
-    loadFromCloud();
-
-    setInterval(() => {
-        if (isAdmin) return;
-
-        let todayStr = new Date().toISOString().split('T')[0];
-        let matchesToday = leagueData.matches[leagueData.currentMatchday] || [];
-        let hasMatchToday = matchesToday.some(m => m.date === todayStr);
-
-        if (hasMatchToday) {
-            loadFromCloud();
-        }
-    }, 30000);
+    loadOpenLigaData();
+    setInterval(() => { if (!isAdmin) loadOpenLigaData(); }, 60000);
 </script>
 
 </body>
