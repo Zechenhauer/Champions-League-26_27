@@ -583,9 +583,8 @@
         matches: {}
     };
 
-    let previousScores = {}; // Speichert Spielstände zur automatischen Tor-Erkennung
+    let previousScores = {}; 
 
-    // VAPID Public Key Helper für Base64-Konvertierung
     function urlBase64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
         const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
@@ -597,7 +596,7 @@
         return outputArray;
     }
 
-    // Push Benachrichtigungen aktivieren und mit VAPID Key in Supabase speichern
+    // HIER AUF DIE NEUE CL-TABELLE GEÄNDERT:
     async function requestPushPermission() {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
             alert("Push-Benachrichtigungen werden von diesem Browser leider nicht unterstützt.");
@@ -624,7 +623,8 @@
             const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
             const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
 
-            const { error } = await supabaseClient.from('push_subscriptions').upsert({
+            // Geändert zu push_subscriptions_cl:
+            const { error } = await supabaseClient.from('push_subscriptions_cl').upsert({
                 endpoint: subscription.endpoint,
                 p256dh: p256dh,
                 auth: auth
@@ -634,7 +634,7 @@
                 console.error("Supabase Fehlerdetails:", error);
                 alert("Fehler in Supabase: " + error.message);
             } else {
-                alert("Push-Alarm erfolgreich aktiviert! Dein Gerät ist jetzt registriert.");
+                alert("Push-Alarm für Champions League erfolgreich aktiviert! Dein Gerät ist jetzt registriert.");
             }
 
         } catch (error) {
@@ -643,7 +643,6 @@
         }
     }
 
-    // Test-Push an die Supabase Edge Function senden
     async function sendTestPush() {
         try {
             const response = await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
@@ -667,7 +666,6 @@
         }
     }
 
-    // Automatischer Push bei echtem Tor inkl. Torschütze und Spielminute
     async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerName = '', minute = '') {
         try {
             let detail = scorerName ? 'Tor durch ' + scorerName : "Tor!";
@@ -690,7 +688,6 @@
         }
     }
 
-    // Live-Tor manuell simulieren (Test-Button)
     async function simulateLiveGoal() {
         await triggerAutomaticGoalPush("FC Bayern München", "Real Madrid", 1, 0, "Harry Kane", "42");
         alert("Simuliertes Live-Tor gesendet! Die Push-Nachricht sollte gleich auf dem Handy erscheinen.");
@@ -732,7 +729,6 @@
                         }
                     }
 
-                    // --- AUTOMATISCHE TOR-ERKENNUNG MIT TORSCHÜTZE & MINUTE ---
                     if (homeScore !== null && awayScore !== null) {
                         let prev = previousScores[matchId];
                         if (prev !== undefined) {
