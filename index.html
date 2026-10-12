@@ -112,6 +112,7 @@
             justify-content: center;
             gap: 15px;
             flex-wrap: wrap;
+            align-items: center;
         }
 
         .supabase-badge {
@@ -122,6 +123,44 @@
             border: 1px solid rgba(46, 160, 67, 0.3);
             font-weight: 600;
         }
+
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .live-badge-global {
+            display: none;
+            color: #ff7b72;
+            background: rgba(248, 81, 73, 0.15);
+            padding: 3px 10px;
+            border-radius: 4px;
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            font-weight: bold;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+        .live-dot-global {
+            width: 8px;
+            height: 8px;
+            background-color: #f85149;
+            border-radius: 50%;
+            animation: pulse-red 1.2s infinite;
+        }
+
+        .header-action-btn {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .header-action-btn:hover { background: rgba(0, 0, 0, 0.4); }
 
         .section-box {
             background: #0b0f19;
@@ -144,6 +183,18 @@
             margin-bottom: 15px;
             letter-spacing: 0.5px;
             box-shadow: 0 2px 8px rgba(220, 5, 45, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
         }
 
         .matchday-controls {
@@ -426,12 +477,18 @@
     <div class="subtitle">UEFA Champions League — Ligaphase Saison 2026/27</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● OpenLigaDB Logos & Torschützen aktiv</span>
+        <span class="supabase-badge">● OpenLigaDB aktiv</span>
+        <div class="live-badge-global" id="liveIndicatorBadge"><span class="live-dot-global"></span> LIVE-SPIELE LÄUFT</div>
     </div>
 
     <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
     <div class="section-box">
-        <div class="section-header">FC Bayern München — Champions League Auswertung</div>
+        <div class="section-header">
+            <span>FC Bayern München — Champions League Auswertung</span>
+            <div class="header-actions">
+                <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
+            </div>
+        </div>
         <div class="stats-grid" id="bayernStatsGrid"></div>
         <div style="margin-top: 15px;">
             <div style="font-size: 0.8rem; font-weight: bold; color: var(--bayern-bright-red); text-transform: uppercase; margin-bottom: 8px;">Interne Torschützenliste (CL)</div>
@@ -451,7 +508,12 @@
 
     <!-- SPIELTAGS-LISTE -->
     <div class="section-box">
-        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele & Torschützen</div>
+        <div class="section-header" id="matchdayTableHeader">
+            <span>Spieltag 1 — Spiele & Torschützen</span>
+            <div class="header-actions">
+                <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
+            </div>
+        </div>
         <div class="matchday-controls">
             <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
             <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 1</strong>
@@ -462,7 +524,12 @@
 
     <!-- GESAMT-TABELLE -->
     <div class="section-box">
-        <div class="section-header">Champions League Tabelle (Ligaphase)</div>
+        <div class="section-header">
+            <span>Champions League Tabelle (Ligaphase)</span>
+            <div class="header-actions">
+                <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
+            </div>
+        </div>
         <div class="table-container">
             <table class="standings-table">
                 <thead>
@@ -489,6 +556,9 @@
             <span>✏️ Detaillierte Torschützen & Tore für <span id="adminMatchdayLabel">Spieltag 1</span></span>
             <span style="font-size: 0.7rem; color: #3fb950;">● Admin-Modus Aktiv</span>
         </div>
+        <button class="btn" style="background: #238636; margin-bottom: 15px;" onclick="sendTestPush()">🚀 Test-Push Benachrichtigung senden</button>
+        <button class="btn" style="background: #e3b341; color: #0b0f19; margin-bottom: 15px;" onclick="simulateLiveGoal()">⚡ Live-Tor simulieren (Test)</button>
+        
         <div id="matchInputsContainer"></div>
         <button class="btn" onclick="saveAllMatches()">Alle Spiel-Details in Supabase speichern</button>
     </div>
@@ -509,19 +579,137 @@
 
     let leagueData = {
         currentMatchday: 1,
-        teams: {}, // Map von Teamname -> LogoUrl
+        teams: {},
         matches: {}
     };
+
+    let previousScores = {}; // Speichert Spielstände zur automatischen Tor-Erkennung
+
+    // VAPID Public Key Helper für Base64-Konvertierung
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    // Push Benachrichtigungen aktivieren und mit VAPID Key in Supabase speichern
+    async function requestPushPermission() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            alert("Push-Benachrichtigungen werden von diesem Browser leider nicht unterstützt.");
+            return;
+        }
+        
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                alert("Die Berechtigung für Benachrichtigungen wurde verweigert.");
+                return;
+            }
+
+            const registration = await navigator.serviceWorker.register('./sw.js');
+            await registration.ready;
+
+            const publicVapidKey = 'BAsnfWgySLti5LzulXfN-xI-x7UDV32LO98YXgg1qdoRY1E1Tl05QPgCvOMgfwe80cSv_K7336-dhJTgBkHUI70';
+            
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+            });
+
+            const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
+            const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
+
+            const { error } = await supabaseClient.from('push_subscriptions').upsert({
+                endpoint: subscription.endpoint,
+                p256dh: p256dh,
+                auth: auth
+            }, { onConflict: 'endpoint' });
+
+            if (error) {
+                console.error("Supabase Fehlerdetails:", error);
+                alert("Fehler in Supabase: " + error.message);
+            } else {
+                alert("Push-Alarm erfolgreich aktiviert! Dein Gerät ist jetzt registriert.");
+            }
+
+        } catch (error) {
+            console.error('Fehler bei der Push-Registrierung:', error);
+            alert("Fehler beim Aktivieren der Benachrichtigung: " + error.message);
+        }
+    }
+
+    // Test-Push an die Supabase Edge Function senden
+    async function sendTestPush() {
+        try {
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: "⚽ Test-Tor-Alarm (CL)!",
+                    body: "Das Test-Tor wurde erfolgreich über die Edge Function ausgelöst!"
+                })
+            });
+
+            const textResponse = await response.text();
+            if (response.ok) {
+                alert("Test-Push erfolgreich ausgelöst! Gerät(e) sollten benachrichtigt werden.");
+            } else {
+                alert("Fehler von der Edge Function: " + textResponse);
+            }
+        } catch (e) {
+            alert("Netzwerkfehler: " + e.message);
+        }
+    }
+
+    // Automatischer Push bei echtem Tor inkl. Torschütze und Spielminute
+    async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerName = '', minute = '') {
+        try {
+            let detail = scorerName ? 'Tor durch ' + scorerName : "Tor!";
+            if (minute) {
+                detail += ' (' + minute + '. Min)';
+            }
+
+            await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `⚽ CL-TOR! (${hScore}:${aScore})`,
+                    body: `${home} vs ${away} — ${detail}`
+                })
+            });
+            console.log(`Automatischer CL-Tor-Alarm ausgelöst für ${home} vs ${away} (${hScore}:${aScore})`);
+        } catch (e) {
+            console.error("Fehler beim automatischen Tor-Push:", e);
+        }
+    }
+
+    // Live-Tor manuell simulieren (Test-Button)
+    async function simulateLiveGoal() {
+        await triggerAutomaticGoalPush("FC Bayern München", "Real Madrid", 1, 0, "Harry Kane", "42");
+        alert("Simuliertes Live-Tor gesendet! Die Push-Nachricht sollte gleich auf dem Handy erscheinen.");
+    }
 
     async function loadOpenLigaData() {
         try {
             let response = await fetch('https://api.openligadb.de/getmatchdata/ucl/2026');
             let data = await response.json();
             
+            let hasLiveMatches = false;
+
             if (Array.isArray(data) && data.length > 0) {
                 let formattedMatches = {};
 
                 data.forEach(match => {
+                    let isCurrentlyLive = !match.matchIsFinished && match.matchResults && match.matchResults.length > 0;
+                    if (isCurrentlyLive) hasLiveMatches = true;
+
                     let mDay = match.group && match.group.groupOrderID ? match.group.groupOrderID : 1;
                     if (!formattedMatches[mDay]) formattedMatches[mDay] = [];
 
@@ -529,18 +717,34 @@
                     let awayTeam = match.team2.teamName;
                     let homeLogo = match.team1.teamIconUrl || '';
                     let awayLogo = match.team2.teamIconUrl || '';
+                    let matchId = 'cl_' + match.matchID;
 
                     leagueData.teams[homeTeam] = homeLogo;
                     leagueData.teams[awayTeam] = awayLogo;
 
                     let homeScore = null;
                     let awayScore = null;
-                    if (match.matchIsFinished && match.matchResults && match.matchResults.length > 0) {
+                    if (match.matchResults && match.matchResults.length > 0) {
                         let finalResult = match.matchResults.find(r => r.resultTypeID === 2) || match.matchResults[match.matchResults.length - 1];
                         if (finalResult) {
                             homeScore = finalResult.pointsTeam1;
                             awayScore = finalResult.pointsTeam2;
                         }
+                    }
+
+                    // --- AUTOMATISCHE TOR-ERKENNUNG MIT TORSCHÜTZE & MINUTE ---
+                    if (homeScore !== null && awayScore !== null) {
+                        let prev = previousScores[matchId];
+                        if (prev !== undefined) {
+                            if (homeScore > prev.home || awayScore > prev.away) {
+                                let lastGoalObj = (match.goals && match.goals.length > 0) ? match.goals[match.goals.length - 1] : null;
+                                let scorer = lastGoalObj ? lastGoalObj.goalGetterName : '';
+                                let min = lastGoalObj ? lastGoalObj.matchMinute : '';
+
+                                triggerAutomaticGoalPush(homeTeam, awayTeam, homeScore, awayScore, scorer, min);
+                            }
+                        }
+                        previousScores[matchId] = { home: homeScore, away: awayScore };
                     }
 
                     let goalsList = [];
@@ -573,6 +777,11 @@
                 });
 
                 leagueData.matches = formattedMatches;
+            }
+
+            let liveBadge = document.getElementById('liveIndicatorBadge');
+            if (liveBadge) {
+                liveBadge.style.display = hasLiveMatches ? 'flex' : 'none';
             }
         } catch (e) {
             console.log("OpenLigaDB Ladefehler:", e);
@@ -672,7 +881,7 @@
     function renderAll() {
         document.getElementById('matchdayDisplay').textContent = `Spieltag ${leagueData.currentMatchday}`;
         document.getElementById('adminMatchdayLabel').textContent = `Spieltag ${leagueData.currentMatchday}`;
-        document.getElementById('matchdayTableHeader').textContent = `Spieltag ${leagueData.currentMatchday} — Spiele & Torschützen`;
+        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${leagueData.currentMatchday} — Spiele & Torschützen</span><div class="header-actions"><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
         
         renderMatchdayCards();
         renderTable();
