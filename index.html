@@ -596,7 +596,7 @@
         return outputArray;
     }
 
-    // HIER AUF DIE NEUE CL-TABELLE GEÄNDERT:
+    // Push-Benachrichtigungen für die CL-Tabelle (push_subscriptions_cl)
     async function requestPushPermission() {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
             alert("Push-Benachrichtigungen werden von diesem Browser leider nicht unterstützt.");
@@ -623,7 +623,7 @@
             const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
             const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
 
-            // Geändert zu push_subscriptions_cl:
+            // Speichern in push_subscriptions_cl:
             const { error } = await supabaseClient.from('push_subscriptions_cl').upsert({
                 endpoint: subscription.endpoint,
                 p256dh: p256dh,
@@ -643,6 +643,7 @@
         }
     }
 
+    // Test-Push spezifisch für die CL-Tabelle
     async function sendTestPush() {
         try {
             const response = await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
@@ -650,14 +651,15 @@
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: "⚽ Test-Tor-Alarm (CL)!",
-                    body: "Das Test-Tor wurde erfolgreich über die Edge Function ausgelöst!"
+                    table: 'push_subscriptions_cl',
+                    title: "⚽ Champions League Test-Alarm",
+                    body: "Das Test-Tor für die CL wurde erfolgreich ausgelöst!"
                 })
             });
 
             const textResponse = await response.text();
             if (response.ok) {
-                alert("Test-Push erfolgreich ausgelöst! Gerät(e) sollten benachrichtigt werden.");
+                alert("Test-Push für Champions League erfolgreich ausgelöst!");
             } else {
                 alert("Fehler von der Edge Function: " + textResponse);
             }
@@ -678,6 +680,7 @@
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    table: 'push_subscriptions_cl',
                     title: `⚽ CL-TOR! (${hScore}:${aScore})`,
                     body: `${home} vs ${away} — ${detail}`
                 })
@@ -690,7 +693,7 @@
 
     async function simulateLiveGoal() {
         await triggerAutomaticGoalPush("FC Bayern München", "Real Madrid", 1, 0, "Harry Kane", "42");
-        alert("Simuliertes Live-Tor gesendet! Die Push-Nachricht sollte gleich auf dem Handy erscheinen.");
+        alert("Simuliertes Live-Tor gesendet!");
     }
 
     async function loadOpenLigaData() {
