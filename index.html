@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚽Bay.CL</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23dc052d%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%23ffffff%22>⚽</text></svg>">
+    <title>Bayern 1.BL</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23dc052d%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>⚽</text></svg>">
+    <link rel="apple-touch-icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%23dc052d%22/><text x=%2250%22 y=%2270%22 font-size=%2260%22 text-anchor=%22middle%22>⚽</text></svg>">
+
     <!-- Supabase Client Bibliothek laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -17,9 +22,9 @@
             --bayern-red: #dc052d;
             --bayern-red-hover: #b00424;
             --bayern-dark: #86001a;
-            --accent-green: rgba(46, 160, 67, 0.12);
-            --accent-playoff: rgba(56, 139, 253, 0.10);
-            --accent-german: rgba(227, 179, 64, 0.15);
+            --accent-green: rgba(46, 160, 67, 0.25);
+            --accent-yellow: rgba(227, 179, 64, 0.22);
+            --bayern-gold: #ffcc00;
             --bayern-bright-red: #ff334b;
         }
 
@@ -47,21 +52,64 @@
         .banner-wrapper {
             width: 100%;
             display: flex;
-            justify-content: center;
-            background-color: var(--card-bg);
+            flex-direction: column;
+            align-items: center;
+            background-color: #0b0f19;
+            border: 2px solid var(--bayern-red);
             border-radius: 8px;
             margin-bottom: 15px;
-            overflow: hidden;
+            padding: 10px;
+            box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
+            position: relative;
         }
 
-        .app-banner {
+        .slideshow-container {
+            position: relative;
             width: 100%;
-            height: auto;
-            border-radius: 8px;
-            border: 2px solid var(--bayern-red);
-            box-shadow: 0 4px 15px rgba(220, 5, 45, 0.3);
-            display: block;
+            height: 380px;
+            background-color: #000000;
+            overflow: hidden;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
+        .slide-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .slide-caption {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            color: var(--bayern-gold);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .slide-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(134, 0, 26, 0.8);
+            color: white;
+            border: 1px solid var(--bayern-red);
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        .slide-btn:hover { background: var(--bayern-red); }
+        .slide-prev { left: 10px; }
+        .slide-next { right: 10px; }
 
         .title-row {
             display: flex;
@@ -88,7 +136,7 @@
             text-align: center;
             margin: 0;
             color: #ffffff;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
         }
         h2 span {
@@ -128,7 +176,14 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.4; }
         }
-        .live-badge-global {
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #f85149;
+            border-radius: 50%;
+            animation: pulse-red 1.2s infinite;
+        }
+        .live-badge {
             display: none;
             color: #ff7b72;
             background: rgba(248, 81, 73, 0.15);
@@ -141,26 +196,6 @@
             font-size: 0.75rem;
             letter-spacing: 0.5px;
         }
-        .live-dot-global {
-            width: 8px;
-            height: 8px;
-            background-color: #f85149;
-            border-radius: 50%;
-            animation: pulse-red 1.2s infinite;
-        }
-
-        .header-action-btn {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        .header-action-btn:hover { background: rgba(0, 0, 0, 0.4); }
 
         .section-box {
             background: #0b0f19;
@@ -197,139 +232,112 @@
             flex-wrap: wrap;
         }
 
-        .matchday-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-
-        .matchday-btn {
-            background: #21262d;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 6px 12px;
-            border-radius: 6px;
+        .header-action-btn {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
+            padding: 4px 10px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 0.75rem;
             font-weight: bold;
             transition: background 0.2s;
         }
-        .matchday-btn:hover { background: var(--bayern-dark); border-color: var(--bayern-red); }
+        .header-action-btn:hover { background: rgba(0, 0, 0, 0.4); }
+
+        .btn-modal-open {
+            background: var(--bayern-gold);
+            color: #0b0f19;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        .btn-modal-open:hover { background: #ffdb4d; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .modal-card {
+            background: #131b2e;
+            border: 1px solid var(--bayern-red);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-body {
+            overflow-y: auto;
+            max-height: 70vh;
+        }
+
+        .bayern-badge-win {
+            background: rgba(46, 160, 67, 0.25);
+            color: #3fb950;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(46, 160, 67, 0.4);
+            font-weight: bold;
+        }
+        .bayern-badge-draw {
+            background: rgba(227, 179, 64, 0.25);
+            color: #e3b341;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(227, 179, 64, 0.4);
+            font-weight: bold;
+        }
+        .bayern-badge-loss {
+            background: rgba(248, 81, 73, 0.25);
+            color: #f85149;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            font-weight: bold;
+        }
 
         .bayern-highlight { 
             color: var(--bayern-bright-red) !important; 
             font-weight: bold; 
         }
-        .german-highlight {
-            color: #f0883e !important;
-            font-weight: bold;
-        }
 
-        .match-card {
-            background: #131b2e;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
+        tr.bayern-match-row {
+            background: rgba(220, 5, 45, 0.12);
+            border-left: 3px solid var(--bayern-red);
+            border-right: 3px solid var(--bayern-red);
         }
-        .match-card.bayern-match {
-            border: 1px solid var(--bayern-red);
-            background: rgba(220, 5, 45, 0.08);
-        }
-        .match-card.german-match {
-            border: 1px solid #e3b341;
-            background: rgba(227, 179, 64, 0.05);
-        }
-
-        .match-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 6px;
-        }
-
-        .teams-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.95rem;
-            margin-bottom: 8px;
-        }
-
-        .match-scorers-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            border-top: 1px dashed rgba(255,255,255,0.1);
-            padding-top: 6px;
-            margin-top: 6px;
-            gap: 10px;
-        }
-        .scorers-side { flex: 1; }
-        .scorers-side.home { text-align: right; }
-        .scorers-side.away { text-align: left; }
-
-        .team-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-        .team-box.home { justify-content: flex-end; text-align: right; }
-        .team-box.away { justify-content: flex-start; text-align: left; }
-
-        .team-logo-sm {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-            padding: 1px;
-        }
-
-        .live-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(248, 81, 73, 0.15);
-            color: #f85149;
-            border: 1px solid rgba(248, 81, 73, 0.4);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        .live-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #f85149;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 1; }
+        tr.bayern-match-row td {
+            border-top: 1px solid rgba(220, 5, 45, 0.3);
+            border-bottom: 1px solid rgba(220, 5, 45, 0.3);
         }
 
         .table-container {
             width: 100%;
             overflow-x: auto;
         }
-        table.standings-table {
+        table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
             font-size: 0.85rem;
         }
-        table.standings-table th {
+        th {
             background-color: var(--bayern-dark);
             color: #ffffff;
             padding: 10px 8px;
@@ -338,15 +346,23 @@
             white-space: nowrap;
             border-bottom: 2px solid var(--bayern-red);
         }
-        table.standings-table td {
+        td {
             padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
             white-space: nowrap;
+            vertical-align: top;
         }
-        table.standings-table tr:hover { background-color: rgba(220, 5, 45, 0.03); }
+        tr:hover { background-color: rgba(220, 5, 45, 0.03); }
 
-        tr.rank-first td { background: var(--accent-green); border-left: 3px solid #3fb950; }
-        tr.rank-playoff td { background: var(--accent-playoff); border-left: 3px solid #58a6ff; }
+        tr.rank-first td {
+            background: var(--accent-green);
+            color: #3fb950;
+            font-weight: bold;
+        }
+        tr.rank-last td {
+            background: var(--accent-yellow);
+            color: #e3b341;
+        }
         tr.bayern-team-row td {
             font-weight: bold;
             color: var(--bayern-bright-red);
@@ -354,17 +370,11 @@
             border-top: 1px solid rgba(220, 5, 45, 0.4);
             border-bottom: 1px solid rgba(220, 5, 45, 0.4);
         }
-        tr.german-team-row td {
-            background: var(--accent-german);
-            border-left: 3px solid #e3b341;
-            font-weight: 600;
-        }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px;
-            margin-bottom: 15px;
         }
         .stat-card {
             background: #1b1622;
@@ -383,6 +393,29 @@
             font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
+        }
+
+        .team-cell-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .team-mini-logo {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .date-header-row {
+            background: #1b1622;
+            color: var(--bayern-gold);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 8px 10px;
+            border-left: 3px solid var(--bayern-gold);
         }
 
         .admin-toggle-wrapper {
@@ -412,6 +445,37 @@
             margin-top: 15px;
             display: none;
         }
+        .match-input-card {
+            background: #131b2e;
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            align-items: end;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+        .form-control {
+            width: 100%;
+            padding: 6px;
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .form-control:focus { border-color: var(--bayern-red); outline: none; }
+
         .btn {
             background: var(--bayern-red);
             color: #ffffff;
@@ -424,80 +488,116 @@
             font-size: 0.85rem;
             width: 100%;
             margin-top: 10px;
+            transition: background 0.2s;
         }
         .btn:hover { background: var(--bayern-red-hover); }
+        
+        .btn-danger {
+            background: transparent;
+            border: none;
+            color: #f85149;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- SLIDESHOW OBEN -->
     <div class="banner-wrapper">
-        <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Teamfoto_bayern.png" alt="FC Bayern Teamfoto Banner" class="app-banner">
+        <div class="slideshow-container">
+            <button class="slide-btn slide-prev" onclick="prevSlide()">❮</button>
+            <img id="slideImage" src="" alt="Mannschaftsfoto / Kader" class="slide-img">
+            <button class="slide-btn slide-next" onclick="nextSlide()">❯</button>
+        </div>
+        <div class="slide-caption" id="slideCaption">Mannschaftsfoto</div>
     </div>
 
     <div class="title-row">
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
-        <h2>FC Bayern <span>Champions League</span></h2>
+        <h2>FC Bayern <span>München</span></h2>
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/logo%20fc%20bayern.png" alt="FC Bayern Logo" class="header-logo">
     </div>
-    <div class="subtitle">UEFA Champions League — Ligaphase Saison 2026/27 (via ESPN API)</div>
+    <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27 (Live-Ticker & Zeitraum-Ansicht)</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● ESPN API aktiv</span>
-        <div class="live-badge-global" id="liveIndicatorBadge"><span class="live-dot-global"></span> LIVE-SPIELE LÄUFT</div>
+        <span class="supabase-badge" id="cloudStatusBadge">● ESPN API & Cloud-Sync aktiv</span>
+        <div class="live-badge" id="liveIndicatorBadge"><span class="live-dot"></span> LIVE-SPIELE LÄUFT</div>
     </div>
 
-    <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
+    <!-- BAYERN AUSWERTUNG (GESAMTE SAISON) -->
     <div class="section-box">
         <div class="section-header">
-            <span>FC Bayern München — Champions League Auswertung</span>
-            <div class="header-actions">
-                <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
+            <span>FC Bayern München — Saison-Auswertung (Gesamt)</span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-modal-open" onclick="openStaffModal()" style="background: #3fb950; color: #fff;">🩺 Funktionsteam</button>
+                <button class="btn-modal-open" onclick="openLeagueScorersModal()" style="background: #e3b341; color: #0b0f19;">⚽ Bundesliga-Torschützen</button>
+                <button class="btn-modal-open" onclick="openBayernMatchesModal()">📅 Alle Spiele</button>
             </div>
         </div>
         <div class="stats-grid" id="bayernStatsGrid"></div>
-        <div style="margin-top: 15px;">
-            <div style="font-size: 0.8rem; font-weight: bold; color: var(--bayern-bright-red); text-transform: uppercase; margin-bottom: 8px;">Torschützenliste (FC Bayern Live-Daten)</div>
-            <div class="table-container">
-                <table class="standings-table">
-                    <thead>
-                        <tr>
-                            <th>Torschütze</th>
-                            <th style="text-align: center; width: 100px;">Tore</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bayernScorersBody"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
 
-    <!-- SPIELTAGS-LISTE -->
+    <!-- SPIELPLAN ANSICHT MIT ZEITRAUM-AUSWAHL -->
     <div class="section-box">
-        <div class="section-header" id="matchdayTableHeader">
-            <span>Spieltag 2 — Spiele & Live-Scores</span>
+        <div class="section-header">
+            <span id="matchdayTableHeader">1. Bundesliga Spielplan & Ergebnisse</span>
             <div class="header-actions">
                 <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
             </div>
         </div>
-        <div class="matchday-controls">
-            <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
-            <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 2</strong>
-            <button class="matchday-btn" onclick="changeMatchday(1)">Nächster Spieltag ▶</button>
+
+        <!-- ZEITRAUM STEUERUNG -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 bg-[#0b0f19] p-3 rounded-lg border border-[#30363d]">
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-slate-400 font-semibold">📅 Zeitraum:</span>
+                <select id="timeframe-select" onchange="onTimeframeChange()" class="bg-[#131b2e] text-amber-300 font-bold text-sm px-3 py-1.5 rounded border border-[#30363d] focus:outline-none cursor-pointer">
+                    <option value="next7" selected>📅 Nächste 7 Tage</option>
+                    <option value="prev7">⏮️ Vergangene 7 Tage</option>
+                    <option value="prev30">⏮️ Vergangene 30 Tage</option>
+                    <option value="single">📆 Einzelnes Datum...</option>
+                </select>
+            </div>
+
+            <!-- Dynamisches Datumsfeld -->
+            <div id="single-date-wrapper" class="hidden items-center gap-2 bg-[#131b2e] border border-[#30363d] px-3 py-1 rounded-lg">
+                <input type="date" id="single-date-input" onchange="loadLeagueGames()" class="bg-transparent text-amber-300 font-bold text-sm focus:outline-none cursor-pointer">
+            </div>
+
+            <button onclick="refreshAllData()" class="bg-red-700 hover:bg-red-600 text-white font-medium px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 border border-red-500/30">
+                🔄 Aktualisieren
+            </button>
         </div>
-        <div id="matchdayMatchesContainer"></div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 100px; color: #ffffff;">Uhrzeit</th>
+                        <th style="text-align: right;">Heimmannschaft</th>
+                        <th style="text-align: center; width: 180px;">Ergebnis / Status</th>
+                        <th>Gastmannschaft</th>
+                    </tr>
+                </thead>
+                <tbody id="matchdayTableBody">
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Spieldaten von ESPN...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- GESAMT-TABELLE -->
     <div class="section-box">
         <div class="section-header">
-            <span>Champions League Tabelle (Ligaphase)</span>
+            <span>Bundesliga-Tabelle (Gesamt)</span>
             <div class="header-actions">
                 <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
             </div>
         </div>
         <div class="table-container">
-            <table class="standings-table">
+            <table>
                 <thead>
                     <tr>
                         <th style="width: 35px;">Pl.</th>
@@ -511,22 +611,127 @@
                         <th style="text-align: center;">Punkte</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody"></tbody>
+                <tbody id="tableBody">
+                    <tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Tabelle...</td></tr>
+                </tbody>
             </table>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.75rem; color: var(--text-muted);">
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-green); border-radius: 2px; display: inline-block;"></span> 1. Platz (Champions League)</div>
+            <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 12px; height: 12px; background: var(--accent-yellow); border-radius: 2px; display: inline-block;"></span> Abstiegsplätze (16. - 18.)</div>
         </div>
     </div>
 
     <!-- ADMIN BEREICH -->
     <div class="admin-card" id="adminCard">
         <div style="font-weight: bold; color: var(--bayern-bright-red); margin-bottom: 12px; text-transform: uppercase; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>✏️ Admin-Testbereich</span>
+            <span>✏️ Bayern-Torschützen für den aktuellen Zeitraum erfassen</span>
             <span style="font-size: 0.7rem; color: #3fb950;">● Admin-Modus Aktiv</span>
         </div>
-        <button class="btn" style="background: #238636; margin-bottom: 15px;" onclick="sendTestPush()">🚀 Test-Push Benachrichtigung senden</button>
+        <div id="matchInputsContainer"></div>
+        <button class="btn" onclick="saveAllScorers()">Bayern-Torschützen speichern</button>
+        <button class="btn" style="background: #238636; margin-top: 10px;" onclick="sendTestPush()">🚀 Test-Push Benachrichtigung senden</button>
+        <button class="btn" style="background: #e3b341; color: #0b0f19; margin-top: 10px;" onclick="simulateLiveGoal()">⚡ Live-Tor simulieren (Test)</button>
     </div>
 
     <div class="admin-toggle-wrapper">
         <button class="admin-toggle-btn" onclick="toggleAdminMode()">⚙️ Admin-Zugang</button>
+    </div>
+</div>
+
+<!-- POPUP MODAL: FUNKTIONSTEAM & STAB -->
+<div class="modal-overlay" id="staffModal">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 1.1rem; color: #ffffff;">🩺 Funktionsteam & Betreuerstab</div>
+            <button class="btn-danger" onclick="closeStaffModal()">✕</button>
+        </div>
+        <div class="modal-body" style="font-size: 0.9rem; line-height: 1.6;">
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">🏥 Ärzte-Team</div>
+                <div style="color: var(--text-color);">Prof. Dr. Peter Ueblacker, Dr. Jochen Hahne, Prof. Dr. Roland Schmidt <span style="color: var(--text-muted); font-size: 0.8rem;">(Internist, Kardiologe)</span></div>
+            </div>
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">💪 Athletik- und Rehatrainer</div>
+                <div style="color: var(--text-color);">Benjamin Sommer, Simon Martinello, Markus Murrer, Quirin Löppert, Soner Mansuroglu <span style="color: var(--text-muted); font-size: 0.8rem;">(Datenanalyst)</span></div>
+            </div>
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">🏃‍♂️ Physiotherapeuten</div>
+                <div style="color: var(--text-color);">Helmut Erhard <span style="color: var(--text-muted); font-size: 0.8rem;">(Leiter)</span>, Gerry Hoffmann <span style="color: var(--text-muted); font-size: 0.8rem;">(stellv. Leiter)</span>, Christian Huhn, Stephan Weickert, Florian Brandner, Knut Stamer</div>
+            </div>
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">📊 Spiel-Analysten</div>
+                <div style="color: var(--text-color);">Michael Niemeyer <span style="color: var(--text-muted); font-size: 0.8rem;">(Leiter)</span>, Michael Cuper, Maximilian Schwab, Giacomo Stey, Patrick Lieb</div>
+            </div>
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">📋 Teammanagement</div>
+                <div style="color: var(--text-color);">Maciej Jagiellowicz, Samuel Geiler, Rodyse Munienge</div>
+            </div>
+            <div style="margin-bottom: 15px; background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">🎽 Zeugwarte</div>
+                <div style="color: var(--text-color);">Martin Dellemann, Lawrence Aimable, Sebastian Pflügler, Haris Harbas</div>
+            </div>
+            <div style="background: #1b1622; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div style="color: var(--bayern-gold); font-weight: bold; margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem;">🚌 Busfahrer</div>
+                <div style="color: var(--text-color);">Michael Lauerbach, Armin Kriz</div>
+            </div>
+        </div>
+        <button class="btn" style="margin-top: 15px;" onclick="closeStaffModal()">Schließen</button>
+    </div>
+</div>
+
+<!-- POPUP MODAL: TORSCHÜTZEN -->
+<div class="modal-overlay" id="leagueScorersModal">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 1.1rem; color: #ffffff;">⚽ Torschützenliste — 1. Bundesliga</div>
+            <button class="btn-danger" onclick="closeLeagueScorersModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">Pl.</th>
+                            <th>Spieler</th>
+                            <th style="text-align: center; width: 70px;">Tore</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leagueScorersModalBody">
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Torschützen...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <button class="btn" style="margin-top: 15px;" onclick="closeLeagueScorersModal()">Schließen</button>
+    </div>
+</div>
+
+<!-- POPUP MODAL: ALLE SPIELE FC BAYERN -->
+<div class="modal-overlay" id="bayernMatchesModal">
+    <div class="modal-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 1.1rem; color: #ffffff;">📅 FC Bayern München — Alle Saisonspiele</div>
+            <button class="btn-danger" onclick="closeBayernMatchesModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 90px;">Termin</th>
+                            <th style="text-align: right;">Heim</th>
+                            <th style="text-align: center; width: 70px;">Erg.</th>
+                            <th>Gast</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bayernMatchesModalBody">
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Spiele...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <button class="btn" style="margin-top: 15px;" onclick="closeBayernMatchesModal()">Schließen</button>
     </div>
 </div>
 
@@ -537,23 +742,53 @@
 
     const ADMIN_PIN = "1919";
     let isAdmin = false;
-    const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München", "Bayer Leverkusen", "FC Bayern Munich"];
 
-    const matchdaySchedule = {
-        1: { title: "Spieltag 1", dates: ["20260908", "20260909", "20260910"] },
-        2: { title: "Spieltag 2", dates: ["20261013", "20261014"] },
-        3: { title: "Spieltag 3", dates: ["20261020", "20261021"] },
-        4: { title: "Spieltag 4", dates: ["20261103", "20261104"] },
-        5: { title: "Spieltag 5", dates: ["20261124", "20261125"] },
-        6: { title: "Spieltag 6", dates: ["20261208", "20261209"] },
-        7: { title: "Spieltag 7", dates: ["20270119", "20270120"] },
-        8: { title: "Spieltag 8", dates: ["20270128"] }
-    };
+    function isBayernTeam(name) {
+        if (!name) return false;
+        let n = name.toLowerCase();
+        return n.includes("bayern");
+    }
 
-    let currentMatchday = 2;
-    let matchdaysCache = {};
-    let allLoadedEvents = [];
-    let previousScores = {};
+    // SLIDESHOW
+    const slides = [
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Teamfoto_bayern.png", name: "Mannschaftsfoto" },
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Torhueter.png", name: "Torhüter" },
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Abwehr.png", name: "Abwehr" },
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Mittelfeld.png", name: "Mittelfeld" },
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Angriff.png", name: "Angriff" },
+        { url: "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Trainerteam.png", name: "Trainerstab" }
+    ];
+    let currentSlideIndex = 0;
+    let slideInterval;
+
+    function showSlide(index) {
+        if (index >= slides.length) currentSlideIndex = 0;
+        else if (index < 0) currentSlideIndex = slides.length - 1;
+        else currentSlideIndex = index;
+
+        let imgElem = document.getElementById('slideImage');
+        let captionElem = document.getElementById('slideCaption');
+
+        imgElem.style.opacity = 0;
+        setTimeout(() => {
+            imgElem.src = slides[currentSlideIndex].url;
+            captionElem.textContent = slides[currentSlideIndex].name;
+            imgElem.style.opacity = 1;
+        }, 200);
+    }
+
+    function nextSlide() { showSlide(currentSlideIndex + 1); resetTimer(); }
+    function prevSlide() { showSlide(currentSlideIndex - 1); resetTimer(); }
+    function resetTimer() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(() => { showSlide(currentSlideIndex + 1); }, 5000);
+    }
+
+    let teamLogos = {};
+    let leagueEvents = [];
+    let bayernCloudScorers = {};
+    let previousScores = {}; 
+    let autoRefreshTimer = null;
 
     function urlBase64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -571,6 +806,7 @@
             alert("Push-Benachrichtigungen werden von diesem Browser leider nicht unterstützt.");
             return;
         }
+        
         try {
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
@@ -582,6 +818,7 @@
             await registration.ready;
 
             const publicVapidKey = 'BAsnfWgySLti5LzulXfN-xI-x7UDV32LO98YXgg1qdoRY1E1Tl05QPgCvOMgfwe80cSv_K7336-dhJTgBkHUI70';
+            
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
@@ -590,14 +827,17 @@
             const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
             const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
 
-            const { error } = await supabaseClient.from('push_subscriptions_cl').upsert({
+            const { error } = await supabaseClient.from('push_subscriptions_bayern').upsert({
                 endpoint: subscription.endpoint,
                 p256dh: p256dh,
                 auth: auth
             }, { onConflict: 'endpoint' });
 
-            if (error) alert("Fehler in Supabase: " + error.message);
-            else alert("Push-Alarm für Champions League erfolgreich aktiviert!");
+            if (error) {
+                alert("Fehler in Supabase: " + error.message);
+            } else {
+                alert("Push-Alarm für Bayern erfolgreich aktiviert!");
+            }
         } catch (error) {
             alert("Fehler beim Aktivieren der Benachrichtigung: " + error.message);
         }
@@ -610,367 +850,569 @@
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    table: 'push_subscriptions_cl',
-                    title: "⚽ Champions League Test-Alarm",
-                    body: "Das Test-Tor für die CL wurde erfolgreich ausgelöst!"
+                    table: 'push_subscriptions_bayern',
+                    title: "🔴⚫ FC Bayern Test-Alarm",
+                    body: "Das Test-Tor für den FC Bayern wurde erfolgreich ausgelöst!"
                 })
             });
-            if (response.ok) alert("Test-Push erfolgreich ausgelöst!");
+            if (response.ok) alert("Test-Push für Bayern erfolgreich ausgelöst!");
             else alert("Fehler beim Senden.");
         } catch (e) {
             alert("Netzwerkfehler: " + e.message);
         }
     }
 
-    // Einziger, präziser Push-Trigger mit Spielstand & Torschütze
-    async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerText) {
+    async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerName = '', minute = '') {
         try {
-            let msgBody = `${home} vs ${away}`;
-            if (scorerText) {
-                msgBody = `Torschütze: ${scorerText}\n(${home} vs ${away})`;
-            }
+            let detail = scorerName ? 'Tor durch ' + scorerName : "Tor!";
+            if (minute) detail += ' (' + minute + '. Min)';
 
             await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    table: 'push_subscriptions_cl',
-                    title: `⚽ TOR! (${hScore}:${aScore})`,
-                    body: msgBody
+                    table: 'push_subscriptions_bayern',
+                    title: `🔴⚫ TOR FÜR MÜNCHEN! (${hScore}:${aScore})`,
+                    body: `${home} vs ${away} — ${detail}`
                 })
             });
         } catch (e) {
-            console.error("Tor-Push Fehler:", e);
+            console.error("Fehler beim automatischen Tor-Push:", e);
         }
     }
 
-    async function fetchMatchdayData(matchdayNum) {
-        if (matchdaysCache[matchdayNum]) {
-            return matchdaysCache[matchdayNum];
-        }
-
-        let dates = matchdaySchedule[matchdayNum].dates || [];
-        let fetchedEvents = [];
-
-        for (let d of dates) {
-            try {
-                let res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard?dates=${d}`);
-                let data = await res.json();
-                if (data.events) {
-                    fetchedEvents.push(...data.events);
-                }
-            } catch (err) {
-                console.error(`Fehler beim Laden von Datum ${d}:`, err);
-            }
-        }
-
-        matchdaysCache[matchdayNum] = fetchedEvents;
-        return fetchedEvents;
+    async function simulateLiveGoal() {
+        await triggerAutomaticGoalPush("FC Bayern München", "Borussia Dortmund", 1, 0, "Harry Kane", "14");
+        alert("Simuliertes Live-Tor gesendet!");
     }
 
-    async function loadAllData() {
-        let events1 = await fetchMatchdayData(1);
-        let events2 = await fetchMatchdayData(2);
-        
-        allLoadedEvents = [...events1, ...events2];
-
-        let currentEvents = await fetchMatchdayData(currentMatchday);
-
-        currentEvents.forEach(ev => {
-            let comp = ev.competitions?.[0];
-            let home = comp?.competitors?.find(c => c.homeAway === "home");
-            let away = comp?.competitors?.find(c => c.homeAway === "away");
-            if (home && away && home.score !== undefined && away.score !== undefined) {
-                let matchId = 'cl_' + ev.id;
-                let prev = previousScores[matchId];
-                let hScore = parseInt(home.score);
-                let aScore = parseInt(away.score);
-
-                if (prev !== undefined) {
-                    if (hScore > prev.home || aScore > prev.away) {
-                        // Finde den neuesten Torschützen aus den Details heraus
-                        let details = comp?.details || [];
-                        let latestScorer = "";
-                        details.forEach(d => {
-                            if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
-                                let name = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || '';
-                                let min = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
-                                if (name) latestScorer = `${name}${min}`;
-                            }
-                        });
-
-                        // Sende nur einen einzigen, sauberen Push
-                        triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
-                    }
-                }
-                previousScores[matchId] = { home: hScore, away: aScore };
-            }
-        });
-
-        let hasLive = currentEvents.some(ev => ev.status?.type?.state === "in");
-        let liveBadge = document.getElementById('liveIndicatorBadge');
-        if (liveBadge) liveBadge.style.display = hasLive ? 'flex' : 'none';
-
-        renderBayernStats();
-        renderAll(currentEvents);
-    }
-
-    async function changeMatchday(amount) {
-        currentMatchday = Math.max(1, Math.min(8, currentMatchday + amount));
-        document.getElementById('matchdayDisplay').textContent = `Spieltag ${currentMatchday}`;
-        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
-        
-        let events = await fetchMatchdayData(currentMatchday);
-        renderMatchdayCards(events);
-    }
-
-    function renderAll(events) {
-        document.getElementById('matchdayDisplay').textContent = `Spieltag ${currentMatchday}`;
-        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
-
-        renderMatchdayCards(events);
-        loadStandingsFromEspn();
-    }
-
-    function renderBayernStats() {
-        let played = 0, won = 0, draw = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, points = 0;
-        let bayernScorersMap = {};
-
-        allLoadedEvents.forEach(ev => {
-            let comp = ev.competitions?.[0];
-            let home = comp?.competitors?.find(c => c.homeAway === "home");
-            let away = comp?.competitors?.find(c => c.homeAway === "away");
-            if (!home || !away) return;
-
-            let hName = home.team?.displayName || '';
-            let aName = away.team?.displayName || '';
-            let isBayernHome = hName.toLowerCase().includes("bayern");
-            let isBayernAway = aName.toLowerCase().includes("bayern");
-            if (!isBayernHome && !isBayernAway) return;
-
-            let details = comp?.details || [];
-            details.forEach(d => {
-                if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
-                    let scorer = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
-                    let scoringTeam = d.team?.id;
-                    let bayernTeamId = isBayernHome ? home.team.id : away.team.id;
-                    
-                    if (scoringTeam === bayernTeamId && scorer !== 'Unbekannt') {
-                        bayernScorersMap[scorer] = (bayernScorersMap[scorer] || 0) + 1;
-                    }
-                }
-            });
-
-            let status = ev.status?.type?.completed;
-            if (status && home.score !== undefined && away.score !== undefined) {
-                played++;
-                let myGoals = isBayernHome ? parseInt(home.score) : parseInt(away.score);
-                let oppGoals = isBayernHome ? parseInt(away.score) : parseInt(home.score);
-                goalsFor += myGoals;
-                goalsAgainst += oppGoals;
-
-                if (myGoals > oppGoals) { won++; points += 3; }
-                else if (myGoals === oppGoals) { draw++; points += 1; }
-                else { lost++; }
-            }
-        });
-
-        let grid = document.getElementById('bayernStatsGrid');
-        grid.innerHTML = `
-            <div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">${played}</div></div>
-            <div class="stat-card"><div class="stat-label">Siege</div><div class="stat-value" style="color: #3fb950;">${won}</div></div>
-            <div class="stat-card"><div class="stat-label">Remis</div><div class="stat-value" style="color: #e3b341;">${draw}</div></div>
-            <div class="stat-card"><div class="stat-label">Niederlagen</div><div class="stat-value" style="color: #f85149;">${lost}</div></div>
-            <div class="stat-card"><div class="stat-label">Tore</div><div class="stat-value">${goalsFor}:${goalsAgainst}</div></div>
-            <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
-        `;
-
-        let scorersBody = document.getElementById('bayernScorersBody');
-        scorersBody.innerHTML = '';
-        let sortedScorers = Object.entries(bayernScorersMap).sort((a, b) => b[1] - a[1]);
-
-        if (sortedScorers.length === 0) {
-            scorersBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 10px;">Noch keine Torschützen erfasst</td></tr>`;
-        } else {
-            sortedScorers.forEach(([player, count]) => {
-                scorersBody.innerHTML += `<tr><td>⚽ ${player}</td><td style="text-align: center; font-weight: bold; color: var(--bayern-bright-red);">${count}</td></tr>`;
-            });
-        }
-    }
-
-    function renderMatchdayCards(eventsList) {
-        let container = document.getElementById('matchdayMatchesContainer');
-        container.innerHTML = '';
-
-        if (!eventsList || eventsList.length === 0) {
-            container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele für diesen Spieltag gefunden.</div>`;
-            return;
-        }
-
-        eventsList.forEach(ev => {
-            let comp = ev.competitions?.[0];
-            let home = comp?.competitors?.find(c => c.homeAway === "home");
-            let away = comp?.competitors?.find(c => c.homeAway === "away");
-            if (!home || !away) return;
-
-            let hName = home.team?.displayName || 'Heimteam';
-            let aName = away.team?.displayName || 'Auswärtsteam';
-            let hLogo = home.team?.logo || '';
-            let aLogo = away.team?.logo || '';
-
-            let status = ev.status?.type;
-            let isLive = status?.state === "in";
-            let isCompleted = status?.completed;
-            let hasScore = home.score !== undefined && away.score !== undefined;
-
-            let matchDateObj = new Date(ev.date);
-            let dateStr = matchDateObj.toLocaleDateString("de-DE", { day: '2-digit', month: '2-digit', year: 'numeric' });
-            let timeStr = matchDateObj.toLocaleTimeString("de-DE", { hour: '2-digit', minute: '2-digit' }) + " Uhr";
-
-            let isBayern = hName.toLowerCase().includes("bayern") || aName.toLowerCase().includes("bayern");
-            let isGerman = germanTeams.some(t => hName.includes(t) || aName.includes(t));
-
-            let details = comp?.details || [];
-            let homeScorers = [];
-            let awayScorers = [];
-
-            details.forEach(d => {
-                if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
-                    let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Tor';
-                    let minute = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
-                    let goalStr = `⚽ ${playerName}${minute}`;
-                    
-                    if (d.team?.id === home.team.id) {
-                        homeScorers.push(goalStr);
-                    } else if (d.team?.id === away.team.id) {
-                        awayScorers.push(goalStr);
-                    }
-                }
-            });
-
-            let card = document.createElement('div');
-            card.className = 'match-card';
-            if (isBayern) card.classList.add('bayern-match');
-            else if (isGerman) card.classList.add('german-match');
-
-            let homeClass = hName.toLowerCase().includes("bayern") ? 'bayern-highlight' : (germanTeams.some(t => hName.includes(t)) ? 'german-highlight' : '');
-            let awayClass = aName.toLowerCase().includes("bayern") ? 'bayern-highlight' : (germanTeams.some(t => aName.includes(t)) ? 'german-highlight' : '');
-
-            let scoreText = hasScore ? `<strong>${home.score}:${away.score}</strong>` : `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
-            if (isLive) scoreText += ` <span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
-
-            let scorersHtml = '';
-            if (homeScorers.length > 0 || awayScorers.length > 0) {
-                scorersHtml = `
-                    <div class="match-scorers-row">
-                        <div class="scorers-side home">${homeScorers.join('<br>')}</div>
-                        <div class="scorers-side away">${awayScorers.join('<br>')}</div>
-                    </div>
-                `;
-            }
-
-            card.innerHTML = `
-                <div class="match-header-row">
-                    <span>📅 ${dateStr} - ${timeStr}</span>
-                    <span>${isCompleted ? 'Beendet' : (isLive ? 'Läuft' : 'Ausstehend')}</span>
-                </div>
-                <div class="teams-row">
-                    <div class="team-box home">
-                        <span class="${homeClass}">${hName}</span>
-                        <img src="${hLogo}" class="team-logo-sm">
-                    </div>
-                    <span style="padding: 0 15px; text-align: center; min-width: 90px;">${scoreText}</span>
-                    <div class="team-box away">
-                        <img src="${aLogo}" class="team-logo-sm">
-                        <span class="${awayClass}">${aName}</span>
-                    </div>
-                </div>
-                ${scorersHtml}
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    async function loadStandingsFromEspn() {
-        let tbody = document.getElementById('tableBody');
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 15px;">Lade Tabelle von ESPN...</td></tr>`;
-
-        try {
-            let res = await fetch('https://site.api.espn.com/apis/v2/sports/soccer/uefa.champions/standings');
-            let data = await res.json();
-            let entries = data.children?.[0]?.standings?.entries || data.standings?.entries || [];
-
-            tbody.innerHTML = '';
-            if (entries.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 15px;">Keine Tabellendaten verfügbar.</td></tr>`;
-                return;
-            }
-
-            entries.forEach((entry, idx) => {
-                let team = entry.team;
-                let stats = entry.stats || [];
-                let getStat = (name) => stats.find(s => s.name === name)?.displayValue || "0";
-
-                let rank = idx + 1;
-                let name = team?.displayName || 'Unbekannt';
-                let logo = team?.logos?.[0]?.href || '';
-                let games = getStat("gamesPlayed");
-                let wins = getStat("wins");
-                let draws = getStat("ties");
-                let losses = getStat("losses");
-                let points = getStat("points");
-                let diff = getStat("pointDifferential");
-                let goalsFor = getStat("pointsFor");
-                let goalsAgainst = getStat("pointsAgainst");
-
-                let tr = document.createElement('tr');
-                if (name.toLowerCase().includes("bayern")) tr.classList.add('bayern-team-row');
-                else {
-                    if (rank <= 8) tr.classList.add('rank-first');
-                    else if (rank >= 9 && rank <= 24) tr.classList.add('rank-playoff');
-                    if (germanTeams.some(t => name.includes(t))) tr.classList.add('german-team-row');
-                }
-
-                let logoImg = logo ? `<img src="${logo}" class="team-logo-sm" style="vertical-align: middle; margin-right: 6px;">` : '';
-                let formattedDiff = parseInt(diff) > 0 ? '+' + diff : diff;
-
-                tr.innerHTML = `
-                    <td><strong>${rank}.</strong></td>
-                    <td>${logoImg}${name}</td>
-                    <td style="text-align: center;">${games}</td>
-                    <td style="text-align: center;">${wins}</td>
-                    <td style="text-align: center;">${draws}</td>
-                    <td style="text-align: center;">${losses}</td>
-                    <td style="text-align: center;">${goalsFor}:${goalsAgainst}</td>
-                    <td style="text-align: center;">${formattedDiff}</td>
-                    <td style="text-align: center; font-weight: bold;">${points}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #f85149; padding: 15px;">Fehler beim Laden der Tabellendaten.</td></tr>`;
-        }
-    }
-
-    toggleAdminMode = function() {
+    function toggleAdminMode() {
         const adminCard = document.getElementById('adminCard');
         if (isAdmin) {
             isAdmin = false;
             adminCard.style.display = 'none';
+            renderGroupedGames();
             return;
         }
         let enteredPin = prompt("Bitte Admin-PIN eingeben:");
         if (enteredPin === ADMIN_PIN) {
             isAdmin = true;
             adminCard.style.display = 'block';
+            refreshAllData();
         } else if (enteredPin !== null) {
             alert("Falsche PIN!");
         }
-    };
+    }
 
-    loadAllData();
-    setInterval(loadAllData, 30000);
+    async function loadFromCloud(showAlert = false) {
+        try {
+            let [matchesRes, logosRes] = await Promise.all([
+                supabaseClient.from('bundesliga_spiele').select('*'),
+                supabaseClient.from('bundesliga_vereins_logos').select('*')
+            ]);
+
+            bayernCloudScorers = {};
+            if (matchesRes.data && Array.isArray(matchesRes.data)) {
+                matchesRes.data.forEach(row => {
+                    if (row.match_id && row.bayern_scorers) {
+                        bayernCloudScorers[row.match_id] = row.bayern_scorers;
+                    }
+                });
+            }
+
+            if (logosRes.data) {
+                teamLogos = {};
+                logosRes.data.forEach(item => {
+                    if (item.team_name && item.logo_url) {
+                        teamLogos[item.team_name.trim().toLowerCase()] = item.logo_url;
+                    }
+                });
+            }
+
+            if (showAlert) alert("Daten erfolgreich aktualisiert!");
+        } catch (e) {
+            console.log('Ladehinweis:', e);
+        }
+    }
+
+    function onTimeframeChange() {
+        const mode = document.getElementById("timeframe-select").value;
+        const dateWrapper = document.getElementById("single-date-wrapper");
+
+        if (mode === 'single') {
+            dateWrapper.classList.remove("hidden");
+            dateWrapper.classList.add("flex");
+            if (!document.getElementById("single-date-input").value) {
+                document.getElementById("single-date-input").value = new Date().toISOString().split('T')[0];
+            }
+        } else {
+            dateWrapper.classList.add("hidden");
+            dateWrapper.classList.remove("flex");
+        }
+        loadLeagueGames();
+    }
+
+    async function refreshAllData() {
+        await loadLeagueGames();
+        await loadStandings();
+    }
+
+    function formatDateKey(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}${m}${d}`;
+    }
+
+    async function loadLeagueGames() {
+        const container = document.getElementById("matchdayTableBody");
+        container.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">⌛ Lade Spieldaten von ESPN...</td></tr>`;
+
+        const mode = document.getElementById("timeframe-select").value;
+        let datesToFetch = [];
+        let baseDate = new Date();
+
+        if (mode === 'next7') {
+            for (let i = 0; i < 7; i++) {
+                let d = new Date(baseDate);
+                d.setDate(baseDate.getDate() + i);
+                datesToFetch.push(formatDateKey(d));
+            }
+        } else if (mode === 'prev7') {
+            for (let i = 6; i >= 0; i--) {
+                let d = new Date(baseDate);
+                d.setDate(baseDate.getDate() - i);
+                datesToFetch.push(formatDateKey(d));
+            }
+        } else if (mode === 'prev30') {
+            for (let i = 29; i >= 0; i--) {
+                let d = new Date(baseDate);
+                d.setDate(baseDate.getDate() - i);
+                datesToFetch.push(formatDateKey(d));
+            }
+        } else if (mode === 'single') {
+            const val = document.getElementById("single-date-input").value;
+            if (val) {
+                datesToFetch.push(val.replace(/-/g, ''));
+            } else {
+                datesToFetch.push(formatDateKey(baseDate));
+            }
+        }
+
+        try {
+            const promises = datesToFetch.map(dateStr => 
+                fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=${dateStr}`)
+                    .then(res => res.json())
+                    .then(data => data.events || [])
+                    .catch(() => [])
+            );
+
+            const results = await Promise.all(promises);
+            const eventMap = {};
+            results.flat().forEach(e => {
+                if (e && e.id) eventMap[e.id] = e;
+            });
+
+            leagueEvents = Object.values(eventMap);
+            leagueEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            checkLiveState();
+            renderGroupedGames();
+            if (isAdmin) renderInputForm();
+        } catch (error) {
+            console.error("Fehler beim Abrufen der Spieldaten:", error);
+            container.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #f85149; padding: 20px;">⚠️ Fehler beim Laden der Spieldaten.</td></tr>';
+        }
+    }
+
+    function checkLiveState() {
+        const isLive = leagueEvents.some(e => e.status?.type?.state === "in");
+        const liveIndicator = document.getElementById("liveIndicatorBadge");
+
+        if (isLive) {
+            liveIndicator.style.display = 'flex';
+            if (!autoRefreshTimer) {
+                autoRefreshTimer = setInterval(refreshAllData, 15000);
+            }
+        } else {
+            liveIndicator.style.display = 'none';
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+        }
+    }
+
+    function renderGroupedGames() {
+        const tbody = document.getElementById("matchdayTableBody");
+        tbody.innerHTML = "";
+
+        if (leagueEvents.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele im ausgewählten Zeitraum gefunden.</td></tr>`;
+            return;
+        }
+
+        const groupedMap = {};
+        leagueEvents.forEach(event => {
+            const gameDate = new Date(event.date);
+            const dateKey = gameDate.toLocaleDateString("de-DE", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            if (!groupedMap[dateKey]) groupedMap[dateKey] = [];
+            groupedMap[dateKey].push(event);
+        });
+
+        Object.keys(groupedMap).forEach(dateHeader => {
+            let headerTr = document.createElement('tr');
+            headerTr.innerHTML = `<td colspan="4" class="date-header-row">📅 ${dateHeader}</td>`;
+            tbody.appendChild(headerTr);
+
+            groupedMap[dateHeader].forEach(event => {
+                const comp = event.competitions?.[0];
+                const home = comp?.competitors?.find(c => c.homeAway === "home");
+                const away = comp?.competitors?.find(c => c.homeAway === "away");
+                if (!home || !away) return;
+
+                let homeTeam = home.team?.displayName || 'Heimteam';
+                let awayTeam = away.team?.displayName || 'Gastteam';
+                let matchId = 'espn_bl_' + event.id;
+
+                let status = event.status?.type;
+                let isLive = status?.state === "in";
+                let isFinished = status?.completed;
+                let hasScore = home.score !== undefined && away.score !== undefined && home.score !== null;
+
+                let hScore = hasScore ? parseInt(home.score) : null;
+                let aScore = hasScore ? parseInt(away.score) : null;
+
+                if (hScore !== null && aScore !== null) {
+                    let prev = previousScores[matchId];
+                    if (prev !== undefined) {
+                        if (hScore > prev.home || aScore > prev.away) {
+                            if (isBayernTeam(homeTeam) || isBayernTeam(awayTeam)) {
+                                triggerAutomaticGoalPush(homeTeam, awayTeam, hScore, aScore);
+                            }
+                        }
+                    }
+                    previousScores[matchId] = { home: hScore, away: aScore };
+                }
+
+                let gameDate = new Date(event.date);
+                let timeStr = !isNaN(gameDate.getTime()) ? gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + " Uhr" : "-";
+                let isBayernMatch = isBayernTeam(homeTeam) || isBayernTeam(awayTeam);
+
+                let resultDisplay = hasScore ? '<strong>' + hScore + ':' + aScore + '</strong>' : '<span style="color: var(--text-muted); font-style: italic;">vs</span>';
+                if (hasScore && isFinished) {
+                    resultDisplay += '<div style="font-size: 0.65rem; color: #3fb950; margin-top: 2px;">(Endstand)</div>';
+                } else if (isLive) {
+                    resultDisplay += '<div style="font-size: 0.65rem; color: #e3b341; margin-top: 2px;">(Live)</div>';
+                }
+
+                let homeScorersList = [];
+                let awayScorersList = [];
+
+                let cloudText = bayernCloudScorers[matchId] || "";
+                if (cloudText) {
+                    if (isBayernTeam(homeTeam)) homeScorersList.push(cloudText);
+                    else awayScorersList.push(cloudText);
+                }
+
+                if (comp?.details) {
+                    comp.details.forEach(d => {
+                        if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
+                            let name = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Tor';
+                            let min = d.clock?.displayValue ? ` (${d.clock.displayValue}')` : '';
+                            let scoringTeamId = d.team?.id;
+                            
+                            let goalStr = `⚽ ${name}${min}`;
+                            if (scoringTeamId === home.team?.id) {
+                                if (!cloudText || !isBayernTeam(homeTeam)) homeScorersList.push(goalStr);
+                            } else if (scoringTeamId === away.team?.id) {
+                                if (!cloudText || !isBayernTeam(awayTeam)) awayScorersList.push(goalStr);
+                            }
+                        }
+                    });
+                }
+
+                let homeCellContent = getTeamHtml(homeTeam, true, home.team?.logo);
+                if (homeScorersList.length > 0) {
+                    homeCellContent += `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3; text-align: right;">${homeScorersList.join('<br>')}</div>`;
+                }
+
+                let awayCellContent = getTeamHtml(awayTeam, false, away.team?.logo);
+                if (awayScorersList.length > 0) {
+                    awayCellContent += `<div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3; text-align: left;">${awayScorersList.join('<br>')}</div>`;
+                }
+
+                if (isBayernTeam(homeTeam)) homeCellContent = '<span class="bayern-highlight">' + homeCellContent + '</span>';
+                if (isBayernTeam(awayTeam)) awayCellContent = '<span class="bayern-highlight">' + awayCellContent + '</span>';
+
+                let tr = document.createElement('tr');
+                if (isBayernMatch) tr.classList.add('bayern-match-row');
+
+                tr.innerHTML = `
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">${timeStr}</td>
+                    <td style="text-align: right; vertical-align: top;">${homeCellContent}</td>
+                    <td style="text-align: center; vertical-align: top;">${resultDisplay}</td>
+                    <td style="vertical-align: top;">${awayCellContent}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function getTeamHtml(teamName, alignRight = false, logoUrl = '') {
+        let cachedLogo = teamLogos[teamName.trim().toLowerCase()] || logoUrl;
+        let logoHtml = cachedLogo ? '<img src="' + cachedLogo + '" alt="' + teamName + '" class="team-mini-logo">' : '';
+
+        if (alignRight) {
+            return '<div class="team-cell-content" style="justify-content: flex-end;"><span>' + teamName + '</span>' + logoHtml + '</div>';
+        } else {
+            return '<div class="team-cell-content">' + logoHtml + '<span>' + teamName + '</span></div>';
+        }
+    }
+
+    async function loadStandings() {
+        const url = "https://site.api.espn.com/apis/v2/sports/soccer/ger.1/standings";
+        const tbody = document.getElementById("tableBody");
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const entries = data.children?.[0]?.standings?.entries || data.standings?.entries || [];
+            
+            // Fülle Tabelle & direkt auch die Saison-Statistik-Kachel für Bayern aus den Standings-Daten
+            renderTable(entries, tbody);
+            extractBayernStatsFromStandings(entries);
+        } catch (error) {
+            console.error("Fehler beim Abrufen der Tabelle:", error);
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #f85149; padding: 20px;">Fehler beim Laden der Tabelle.</td></tr>';
+        }
+    }
+
+    function extractBayernStatsFromStandings(entries) {
+        const bayernEntry = entries.find(e => isBayernTeam(e.team?.displayName));
+        if (!bayernEntry) return;
+
+        const stats = bayernEntry.stats || [];
+        const getStat = (name) => stats.find(s => s.name === name)?.displayValue || "0";
+
+        let played = getStat("gamesPlayed");
+        let wins = getStat("wins");
+        let draws = getStat("ties");
+        let losses = getStat("losses");
+        let points = getStat("points");
+        let goalsFor = getStat("pointsFor");
+        let goalsAgainst = getStat("pointsAgainst");
+
+        document.getElementById('bayernStatsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Spiele</div><div class="stat-value">${played}</div></div>
+            <div class="stat-card"><div class="stat-label">Siege</div><div class="stat-value" style="color: #3fb950;">${wins}</div></div>
+            <div class="stat-card"><div class="stat-label">Remis</div><div class="stat-value" style="color: #e3b341;">${draws}</div></div>
+            <div class="stat-card"><div class="stat-label">Niederlagen</div><div class="stat-value" style="color: #f85149;">${losses}</div></div>
+            <div class="stat-card"><div class="stat-label">Tore</div><div class="stat-value">${goalsFor}:${goalsAgainst}</div></div>
+            <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
+        `;
+    }
+
+    function renderTable(entries, tbody) {
+        tbody.innerHTML = "";
+        if (!entries || entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Tabellendaten gefunden.</td></tr>';
+            return;
+        }
+
+        entries.forEach((entry, idx) => {
+            const team = entry.team;
+            const stats = entry.stats || [];
+            const getStat = (name) => stats.find(s => s.name === name)?.displayValue || "0";
+
+            const rank = idx + 1;
+            const games = getStat("gamesPlayed");
+            const wins = getStat("wins");
+            const draws = getStat("ties");
+            const losses = getStat("losses");
+            const points = getStat("points");
+            const diff = getStat("pointDifferential");
+            const goalsFor = getStat("pointsFor");
+            const goalsAgainst = getStat("pointsAgainst");
+            const teamName = team?.displayName || 'Unbekannt';
+
+            let tr = document.createElement('tr');
+            if (rank === 1) tr.classList.add('rank-first');
+            else if (rank >= 16) tr.classList.add('rank-last');
+            if (isBayernTeam(teamName)) tr.classList.add('bayern-team-row');
+
+            let teamCellHtml = getTeamHtml(teamName, false, team?.logos?.[0]?.href);
+
+            tr.innerHTML = `
+                <td><strong>${rank}.</strong></td>
+                <td>${teamCellHtml}</td>
+                <td style="text-align: center;">${games}</td>
+                <td style="text-align: center;">${wins}</td>
+                <td style="text-align: center;">${draws}</td>
+                <td style="text-align: center;">${losses}</td>
+                <td style="text-align: center;">${goalsFor}:${goalsAgainst}</td>
+                <td style="text-align: center;">${parseInt(diff) > 0 ? '+' + diff : diff}</td>
+                <td style="text-align: center; font-weight: bold;">${points}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderInputForm() {
+        let container = document.getElementById('matchInputsContainer');
+        container.innerHTML = '';
+        
+        let bayernMatches = leagueEvents.filter(e => {
+            const comp = e.competitions?.[0];
+            const h = comp?.competitors?.find(c => c.homeAway === "home")?.team?.displayName || '';
+            const a = comp?.competitors?.find(c => c.homeAway === "away")?.team?.displayName || '';
+            return isBayernTeam(h) || isBayernTeam(a);
+        });
+
+        if (bayernMatches.length === 0) {
+            container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.8rem;">Kein Bayern-Spiel im aktuellen Zeitraum.</div>`;
+            return;
+        }
+
+        bayernMatches.forEach((e) => {
+            const comp = e.competitions?.[0];
+            const h = comp?.competitors?.find(c => c.homeAway === "home")?.team?.displayName || '';
+            const a = comp?.competitors?.find(c => c.homeAway === "away")?.team?.displayName || '';
+            let matchId = 'espn_bl_' + e.id;
+
+            let card = document.createElement('div');
+            card.className = 'match-input-card';
+            card.innerHTML = `
+                <div style="font-size: 0.8rem; color: var(--bayern-bright-red); font-weight: bold; margin-bottom: 8px;">${h} vs ${a}</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Bayern-Torschützen (z.B. Kane (2), Musiala)</label><input type="text" id="bs_${matchId}" class="form-control" value="${bayernCloudScorers[matchId] || ''}" placeholder="Torschützen eingeben..."></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    async function saveAllScorers() {
+        let bayernMatches = leagueEvents.filter(e => {
+            const comp = e.competitions?.[0];
+            const h = comp?.competitors?.find(c => c.homeAway === "home")?.team?.displayName || '';
+            const a = comp?.competitors?.find(c => c.homeAway === "away")?.team?.displayName || '';
+            return isBayernTeam(h) || isBayernTeam(a);
+        });
+
+        for (let e of bayernMatches) {
+            let matchId = 'espn_bl_' + e.id;
+            let inputElem = document.getElementById('bs_' + matchId);
+            if (inputElem) {
+                let val = inputElem.value.trim();
+                bayernCloudScorers[matchId] = val;
+
+                const comp = e.competitions?.[0];
+                const h = comp?.competitors?.find(c => c.homeAway === "home")?.team?.displayName || '';
+                const a = comp?.competitors?.find(c => c.homeAway === "away")?.team?.displayName || '';
+
+                await supabaseClient.from('bundesliga_spiele').upsert({
+                    match_id: matchId,
+                    matchday: 0,
+                    home_team: h,
+                    away_team: a,
+                    bayern_scorers: val
+                }, { onConflict: 'match_id' });
+            }
+        }
+
+        renderGroupedGames();
+        alert("Bayern-Torschützen erfolgreich in der Cloud gespeichert!");
+    }
+
+    function openStaffModal() { document.getElementById('staffModal').style.display = 'flex'; }
+    function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
+    function openLeagueScorersModal() {
+        renderLeagueScorersModalList();
+        document.getElementById('leagueScorersModal').style.display = 'flex';
+    }
+    function closeLeagueScorersModal() { document.getElementById('leagueScorersModal').style.display = 'none'; }
+
+    function renderLeagueScorersModalList() {
+        let tbody = document.getElementById('leagueScorersModalBody');
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">Torschützen basieren auf den erfassten Spielen im Zeitraum.</td></tr>`;
+    }
+
+    async function openBayernMatchesModal() {
+        let modalBody = document.getElementById('bayernMatchesModalBody');
+        modalBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Lade Bayern-Spiele...</td></tr>';
+        document.getElementById('bayernMatchesModal').style.display = 'flex';
+
+        try {
+            let res = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard?dates=20260701-20270630&limit=400');
+            let data = await res.json();
+            let events = data.events || [];
+            
+            modalBody.innerHTML = '';
+            let bayernAll = events.filter(e => {
+                const comp = e.competitions?.[0];
+                const h = comp?.competitors?.find(c => c.homeAway === "home")?.team?.displayName || '';
+                const a = comp?.competitors?.find(c => c.homeAway === "away")?.team?.displayName || '';
+                return isBayernTeam(h) || isBayernTeam(a);
+            });
+
+            if (bayernAll.length === 0) {
+                modalBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele gefunden.</td></tr>`;
+                return;
+            }
+
+            bayernAll.forEach(e => {
+                let comp = e.competitions?.[0];
+                let home = comp?.competitors?.find(c => c.homeAway === "home");
+                let away = comp?.competitors?.find(c => c.homeAway === "away");
+                let hTeam = home?.team?.displayName || '';
+                let aTeam = away?.team?.displayName || '';
+                let hasScore = home?.score !== undefined && away?.score !== undefined;
+                let isHome = isBayernTeam(hTeam);
+
+                let badgeClass = '';
+                if (hasScore) {
+                    let bGoals = isHome ? parseInt(home.score) : parseInt(away.score);
+                    let oGoals = isHome ? parseInt(away.score) : parseInt(home.score);
+                    if (bGoals > oGoals) badgeClass = 'bayern-badge-win';
+                    else if (bGoals === oGoals) badgeClass = 'bayern-badge-draw';
+                    else badgeClass = 'bayern-badge-loss';
+                }
+
+                let hDisp = isHome ? `<span class="${badgeClass}">${hTeam}</span>` : hTeam;
+                let aDisp = !isHome ? `<span class="${badgeClass}">${aTeam}</span>` : aTeam;
+                let resDisp = hasScore ? `<strong>${home.score}:${away.score}</strong>` : '-:-';
+                let dateStr = new Date(e.date).toLocaleDateString('de-DE');
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">${dateStr}</td>
+                    <td style="text-align: right;">${hDisp}</td>
+                    <td style="text-align: center;">${resDisp}</td>
+                    <td>${aDisp}</td>
+                `;
+                modalBody.appendChild(tr);
+            });
+        } catch (err) {
+            modalBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #f85149; padding: 20px;">Fehler beim Laden.</td></tr>`;
+        }
+    }
+
+    function closeBayernMatchesModal() { document.getElementById('bayernMatchesModal').style.display = 'none'; }
+
+    window.onclick = function(e) {
+        if (e.target === document.getElementById('bayernMatchesModal')) closeBayernMatchesModal();
+        if (e.target === document.getElementById('staffModal')) closeStaffModal();
+        if (e.target === document.getElementById('leagueScorersModal')) closeLeagueScorersModal();
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        showSlide(0);
+        resetTimer();
+        await loadFromCloud();
+        await refreshAllData();
+    });
 </script>
 
 </body>
