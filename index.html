@@ -539,7 +539,6 @@
     let isAdmin = false;
     const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München", "Bayer Leverkusen", "FC Bayern Munich"];
 
-    // Exakte Termine für alle 8 Spieltage (Spieltag 1 korrigiert auf 08.09., 09.09. und 10.09.2026)
     const matchdaySchedule = {
         1: { title: "Spieltag 1", dates: ["20260908", "20260909", "20260910"] },
         2: { title: "Spieltag 2", dates: ["20261013", "20261014"] },
@@ -623,16 +622,22 @@
         }
     }
 
-    async function triggerAutomaticGoalPush(home, away, hScore, aScore) {
+    // Einziger, präziser Push-Trigger mit Spielstand & Torschütze
+    async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerText) {
         try {
+            let msgBody = `${home} vs ${away}`;
+            if (scorerText) {
+                msgBody = `Torschütze: ${scorerText}\n(${home} vs ${away})`;
+            }
+
             await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                 method: 'POST',
                 mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     table: 'push_subscriptions_cl',
-                    title: `⚽ CL-TOR! (${hScore}:${aScore})`,
-                    body: `${home} vs ${away}`
+                    title: `⚽ TOR! (${hScore}:${aScore})`,
+                    body: msgBody
                 })
             });
         } catch (e) {
@@ -679,12 +684,27 @@
             if (home && away && home.score !== undefined && away.score !== undefined) {
                 let matchId = 'cl_' + ev.id;
                 let prev = previousScores[matchId];
+                let hScore = parseInt(home.score);
+                let aScore = parseInt(away.score);
+
                 if (prev !== undefined) {
-                    if (parseInt(home.score) > prev.home || parseInt(away.score) > prev.away) {
-                        triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, home.score, away.score);
+                    if (hScore > prev.home || aScore > prev.away) {
+                        // Finde den neuesten Torschützen aus den Details heraus
+                        let details = comp?.details || [];
+                        let latestScorer = "";
+                        details.forEach(d => {
+                            if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
+                                let name = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || '';
+                                let min = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
+                                if (name) latestScorer = `${name}${min}`;
+                            }
+                        });
+
+                        // Sende nur einen einzigen, sauberen Push
+                        triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
                     }
                 }
-                previousScores[matchId] = { home: parseInt(home.score), away: parseInt(away.score) };
+                previousScores[matchId] = { home: hScore, away: aScore };
             }
         });
 
