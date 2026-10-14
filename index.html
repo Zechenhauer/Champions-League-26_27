@@ -554,7 +554,7 @@
     let matchdaysCache = {};
     let allLoadedEvents = [];
     
-    // Vorherige Spielstände dauerhaft im Browser-Speicher sichern, damit sie beim Reload nicht verloren gehen
+    // Gespeicherte Spielstände aus dem LocalStorage laden
     let previousScores = JSON.parse(localStorage.getItem('cl_previous_scores') || '{}');
 
     function urlBase64ToUint8Array(base64String) {
@@ -647,10 +647,6 @@
     }
 
     async function fetchMatchdayData(matchdayNum) {
-        if (matchdaysCache[matchdayNum]) {
-            return matchdaysCache[matchdayNum];
-        }
-
         let dates = matchdaySchedule[matchdayNum].dates || [];
         let fetchedEvents = [];
 
@@ -675,21 +671,24 @@
         let events2 = await fetchMatchdayData(2);
         
         allLoadedEvents = [...events1, ...events2];
-
         let currentEvents = await fetchMatchdayData(currentMatchday);
 
         currentEvents.forEach(ev => {
             let comp = ev.competitions?.[0];
             let home = comp?.competitors?.find(c => c.homeAway === "home");
             let away = comp?.competitors?.find(c => c.homeAway === "away");
+            
             if (home && away && home.score !== undefined && away.score !== undefined) {
                 let matchId = 'cl_' + ev.id;
-                let prev = previousScores[matchId];
                 let hScore = parseInt(home.score);
                 let aScore = parseInt(away.score);
 
-                if (prev !== undefined) {
-                    // Prüfen ob sich die Tore erhöht haben
+                // Wenn das Spiel zum ersten Mal geladen wird, initialisieren ohne zu pushen
+                if (previousScores[matchId] === undefined) {
+                    previousScores[matchId] = { home: hScore, away: aScore };
+                } else {
+                    let prev = previousScores[matchId];
+                    // Prüfen ob sich die Tore im Vergleich zum letzten Intervall erhöht haben
                     if (hScore > prev.home || aScore > prev.away) {
                         let details = comp?.details || [];
                         let latestScorer = "";
@@ -701,12 +700,12 @@
                             }
                         });
 
+                        console.log("TOR GEFALLEN! Sende Push für:", home.team.displayName, "vs", away.team.displayName, hScore, ":", aScore);
                         triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
                     }
+                    // Wert im Speicher aktualisieren
+                    previousScores[matchId] = { home: hScore, away: aScore };
                 }
-                
-                // Spielstand direkt im Speicher & localStorage aktualisieren
-                previousScores[matchId] = { home: hScore, away: aScore };
             }
         });
         
