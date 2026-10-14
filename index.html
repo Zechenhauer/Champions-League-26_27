@@ -553,7 +553,9 @@
     let currentMatchday = 2;
     let matchdaysCache = {};
     let allLoadedEvents = [];
-    let previousScores = {};
+    
+    // Vorherige Spielstände dauerhaft im Browser-Speicher sichern, damit sie beim Reload nicht verloren gehen
+    let previousScores = JSON.parse(localStorage.getItem('cl_previous_scores') || '{}');
 
     function urlBase64ToUint8Array(base64String) {
         const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -622,7 +624,6 @@
         }
     }
 
-    // Einziger, präziser Push-Trigger mit Spielstand & Torschütze
     async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerText) {
         try {
             let msgBody = `${home} vs ${away}`;
@@ -688,8 +689,8 @@
                 let aScore = parseInt(away.score);
 
                 if (prev !== undefined) {
+                    // Prüfen ob sich die Tore erhöht haben
                     if (hScore > prev.home || aScore > prev.away) {
-                        // Finde den neuesten Torschützen aus den Details heraus
                         let details = comp?.details || [];
                         let latestScorer = "";
                         details.forEach(d => {
@@ -700,13 +701,16 @@
                             }
                         });
 
-                        // Sende nur einen einzigen, sauberen Push
                         triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
                     }
                 }
+                
+                // Spielstand direkt im Speicher & localStorage aktualisieren
                 previousScores[matchId] = { home: hScore, away: aScore };
             }
         });
+        
+        localStorage.setItem('cl_previous_scores', JSON.stringify(previousScores));
 
         let hasLive = currentEvents.some(ev => ev.status?.type?.state === "in");
         let liveBadge = document.getElementById('liveIndicatorBadge');
