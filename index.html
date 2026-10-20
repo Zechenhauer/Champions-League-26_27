@@ -427,6 +427,48 @@
             margin-top: 10px;
         }
         .btn:hover { background: var(--bayern-red-hover); }
+
+        /* Modal für Torschützen-Ranking */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--bayern-red);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-shadow: 0 5px 25px rgba(220, 5, 45, 0.4);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: var(--bayern-bright-red);
+            text-transform: uppercase;
+        }
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .close-modal-btn:hover { color: #fff; }
     </style>
 </head>
 <body>
@@ -453,6 +495,7 @@
         <div class="section-header">
             <span>FC Bayern München — Champions League Auswertung</span>
             <div class="header-actions">
+                <button class="header-action-btn" onclick="openAllScorersModal()">🏆 Alle Torschützen (CL)</button>
                 <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
             </div>
         </div>
@@ -478,6 +521,7 @@
         <div class="section-header" id="matchdayTableHeader">
             <span>Spieltag 2 — Spiele & Live-Scores</span>
             <div class="header-actions">
+                <button class="header-action-btn" onclick="openAllScorersModal()">🏆 Alle Torschützen (CL)</button>
                 <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
             </div>
         </div>
@@ -531,6 +575,29 @@
     </div>
 </div>
 
+<!-- MODAL FÜR ALLE TORSCHÜTZEN DER GESAMTEN LIGA MIT VEREIN & LOGO -->
+<div class="modal-overlay" id="allScorersModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span>🏆 Champions League — Alle Torschützen</span>
+            <button class="close-modal-btn" onclick="closeAllScorersModal()">✕</button>
+        </div>
+        <div class="table-container">
+            <table class="standings-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px; text-align: center;">Rang</th>
+                        <th>Torschütze</th>
+                        <th>Mannschaft</th>
+                        <th style="text-align: center; width: 80px;">Tore</th>
+                    </tr>
+                </thead>
+                <tbody id="modalAllScorersBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <script>
     const SUPABASE_URL = 'https://lhusylpjnujlqomougmg.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
@@ -538,6 +605,7 @@
 
     const ADMIN_PIN = "1919";
     let isAdmin = false;
+    let globalAllScorers = []; // Speichert das Ranking aller Spieler inkl. Verein & Logo
     const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München", "Bayer Leverkusen", "FC Bayern Munich"];
 
     const matchdaySchedule = {
@@ -624,28 +692,6 @@
         }
     }
 
-    async function triggerAutomaticGoalPush(home, away, hScore, aScore, scorerText) {
-        try {
-            let msgBody = `${home} vs ${away}`;
-            if (scorerText) {
-                msgBody = `Torschütze: ${scorerText}\n(${home} vs ${away})`;
-            }
-
-            await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
-                method: 'POST',
-                mode: 'cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    table: 'push_subscriptions_cl',
-                    title: `⚽ TOR! (${hScore}:${aScore})`,
-                    body: msgBody
-                })
-            });
-        } catch (e) {
-            console.error("Tor-Push Fehler:", e);
-        }
-    }
-
     async function fetchMatchdayData(matchdayNum) {
         let dates = matchdaySchedule[matchdayNum].dates || [];
         let fetchedEvents = [];
@@ -698,7 +744,17 @@
                             }
                         });
 
-                        triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
+                        // Sende Tor an Edge Function (Server-Doppelschutz fängt Mehrfachanfragen ab)
+                        fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                            method: 'POST',
+                            mode: 'cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                table: 'push_subscriptions_cl',
+                                title: `⚽ TOR! (${hScore}:${aScore})`,
+                                body: latestScorer ? `Torschütze: ${latestScorer}\n(${home.team.displayName} vs ${away.team.displayName})` : `${home.team.displayName} vs ${away.team.displayName}`
+                            })
+                        }).catch(err => console.error("Push Fehler:", err));
                     }
                     previousScores[matchId] = { home: hScore, away: aScore };
                 }
@@ -718,7 +774,7 @@
     async function changeMatchday(amount) {
         currentMatchday = Math.max(1, Math.min(8, currentMatchday + amount));
         document.getElementById('matchdayDisplay').textContent = `Spieltag ${currentMatchday}`;
-        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
+        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="openAllScorersModal()">🏆 Alle Torschützen (CL)</button><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
         
         let events = await fetchMatchdayData(currentMatchday);
         renderMatchdayCards(events);
@@ -726,7 +782,7 @@
 
     function renderAll(events) {
         document.getElementById('matchdayDisplay').textContent = `Spieltag ${currentMatchday}`;
-        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
+        document.getElementById('matchdayTableHeader').innerHTML = `<span>Spieltag ${currentMatchday} — Spiele & Live-Scores</span><div class="header-actions"><button class="header-action-btn" onclick="openAllScorersModal()">🏆 Alle Torschützen (CL)</button><button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button></div>`;
 
         renderMatchdayCards(events);
         loadStandingsFromEspn();
@@ -735,6 +791,7 @@
     function renderBayernStats() {
         let played = 0, won = 0, draw = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, points = 0;
         let bayernScorersMap = {};
+        let allScorersMap = {}; // Speichert Torschützen zusammen mit Team-Info und Logo
 
         allLoadedEvents.forEach(ev => {
             let comp = ev.competitions?.[0];
@@ -744,34 +801,58 @@
 
             let hName = home.team?.displayName || '';
             let aName = away.team?.displayName || '';
+            let hLogo = home.team?.logo || '';
+            let aLogo = away.team?.logo || '';
+
             let isBayernHome = hName.toLowerCase().includes("bayern");
             let isBayernAway = aName.toLowerCase().includes("bayern");
-            if (!isBayernHome && !isBayernAway) return;
 
             let details = comp?.details || [];
             details.forEach(d => {
                 if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
                     let scorer = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
-                    let scoringTeam = d.team?.id;
-                    let bayernTeamId = isBayernHome ? home.team.id : away.team.id;
-                    
-                    if (scoringTeam === bayernTeamId && scorer !== 'Unbekannt') {
-                        bayernScorersMap[scorer] = (bayernScorersMap[scorer] || 0) + 1;
+                    if (scorer !== 'Unbekannt' && scorer.trim() !== '') {
+                        let scoringTeamId = d.team?.id;
+                        let isHomeGoal = (scoringTeamId === home.team.id);
+                        
+                        let teamName = isHomeGoal ? hName : aName;
+                        let teamLogo = isHomeGoal ? hLogo : aLogo;
+
+                        // Schlüssel für den Spieler (Name + Team, falls Spieler bei anderem Verein gleich heißen sollten)
+                        let scorerKey = scorer + "_" + teamName;
+
+                        if (!allScorersMap[scorerKey]) {
+                            allScorersMap[scorerKey] = {
+                                player: scorer,
+                                team: teamName,
+                                logo: teamLogo,
+                                count: 0
+                            };
+                        }
+                        allScorersMap[scorerKey].count++;
+
+                        // Für die Bayern-Spezifische Ansicht unten auf der Hauptseite
+                        let bayernTeamId = isBayernHome ? home.team.id : (isBayernAway ? away.team.id : null);
+                        if (bayernTeamId && scoringTeamId === bayernTeamId) {
+                            bayernScorersMap[scorer] = (bayernScorersMap[scorer] || 0) + 1;
+                        }
                     }
                 }
             });
 
-            let status = ev.status?.type?.completed;
-            if (status && home.score !== undefined && away.score !== undefined) {
-                played++;
-                let myGoals = isBayernHome ? parseInt(home.score) : parseInt(away.score);
-                let oppGoals = isBayernHome ? parseInt(away.score) : parseInt(home.score);
-                goalsFor += myGoals;
-                goalsAgainst += oppGoals;
+            if (isBayernHome || isBayernAway) {
+                let status = ev.status?.type?.completed;
+                if (status && home.score !== undefined && away.score !== undefined) {
+                    played++;
+                    let myGoals = isBayernHome ? parseInt(home.score) : parseInt(away.score);
+                    let oppGoals = isBayernHome ? parseInt(away.score) : parseInt(home.score);
+                    goalsFor += myGoals;
+                    goalsAgainst += oppGoals;
 
-                if (myGoals > oppGoals) { won++; points += 3; }
-                else if (myGoals === oppGoals) { draw++; points += 1; }
-                else { lost++; }
+                    if (myGoals > oppGoals) { won++; points += 3; }
+                    else if (myGoals === oppGoals) { draw++; points += 1; }
+                    else { lost++; }
+                }
             }
         });
 
@@ -785,17 +866,50 @@
             <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
         `;
 
+        // Gesamt-Ranking nach Toren absteigend sortieren
+        globalAllScorers = Object.values(allScorersMap).sort((a, b) => b.count - a.count);
+
+        let bayernScorersSorted = Object.entries(bayernScorersMap).sort((a, b) => b[1] - a[1]);
         let scorersBody = document.getElementById('bayernScorersBody');
         scorersBody.innerHTML = '';
-        let sortedScorers = Object.entries(bayernScorersMap).sort((a, b) => b[1] - a[1]);
 
-        if (sortedScorers.length === 0) {
+        if (bayernScorersSorted.length === 0) {
             scorersBody.innerHTML = `<tr><td colspan="2" style="text-align: center; color: var(--text-muted); padding: 10px;">Noch keine Torschützen erfasst</td></tr>`;
         } else {
-            sortedScorers.forEach(([player, count]) => {
+            bayernScorersSorted.forEach(([player, count]) => {
                 scorersBody.innerHTML += `<tr><td>⚽ ${player}</td><td style="text-align: center; font-weight: bold; color: var(--bayern-bright-red);">${count}</td></tr>`;
             });
         }
+    }
+
+    // Modal Funktionen für das Gesamt-Torschützen-Ranking
+    function openAllScorersModal() {
+        let modalBody = document.getElementById('modalAllScorersBody');
+        modalBody.innerHTML = '';
+
+        if (globalAllScorers.length === 0) {
+            modalBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 15px;">Noch keine Torschützen in der Liga erfasst</td></tr>`;
+        } else {
+            globalAllScorers.forEach((item, index) => {
+                let rank = index + 1;
+                let rankDisplay = rank === 1 ? '🥇 1.' : (rank === 2 ? '🥈 2.' : (rank === 3 ? '🥉 3.' : `${rank}.`));
+                let logoImg = item.logo ? `<img src="${item.logo}" class="team-logo-sm" style="vertical-align: middle; margin-right: 6px;">` : '';
+
+                modalBody.innerHTML += `
+                    <tr>
+                        <td style="text-align: center; font-weight: bold;">${rankDisplay}</td>
+                        <td>⚽ ${item.player}</td>
+                        <td>${logoImg}${item.team}</td>
+                        <td style="text-align: center; font-weight: bold; color: var(--bayern-bright-red);">${item.count}</td>
+                    </tr>
+                `;
+            });
+        }
+        document.getElementById('allScorersModal').style.display = 'flex';
+    }
+
+    function closeAllScorersModal() {
+        document.getElementById('allScorersModal').style.display = 'none';
     }
 
     function renderMatchdayCards(eventsList) {
@@ -992,19 +1106,15 @@
         }
     };
 
-    // --- GEÄNDERT: SICHERER BOSS-CHECK MIT WEB LOCKS API ---
+    // --- SICHERER BOSS-CHECK MIT WEB LOCKS API ---
     async function safeBackgroundCheck() {
         if ('locks' in navigator) {
             try {
                 await navigator.locks.request('bay_cl_master_lock', { ifAvailable: true }, async (lock) => {
                     if (!lock) {
-                        // Ein anderes Gerät/Tab hat gerade den Boss-Sitz – wir halten die Füße still
                         return;
                     }
-                    // WIR SIND DER BOSS! Daten laden & Push prüfen
                     await loadAllData();
-                    
-                    // Schloss für 5 Sekunden halten, damit nicht sofort hin- und hergewechselt wird
                     await new Promise(resolve => setTimeout(resolve, 5000));
                 });
             } catch (e) {
@@ -1015,10 +1125,7 @@
         }
     }
 
-    // Initialer Start beim Laden der App
     safeBackgroundCheck();
-
-    // Alle 30 Sekunden läuft der abgesicherte Check automatisch im Hintergrund
     setInterval(safeBackgroundCheck, 30000);
 </script>
 
