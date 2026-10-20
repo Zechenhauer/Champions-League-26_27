@@ -983,7 +983,8 @@
             return;
         }
         let enteredPin = prompt("Bitte Admin-PIN eingeben:");
-        if (enteredPin === ADMIN_PIN) {
+        let cleanPin = enteredPin ? enteredPin.trim() : "";
+        if (cleanPin === ADMIN_PIN) {
             isAdmin = true;
             adminCard.style.display = 'block';
         } else if (enteredPin !== null) {
@@ -991,8 +992,34 @@
         }
     };
 
-    loadAllData();
-    setInterval(loadAllData, 30000);
+    // --- GEÄNDERT: SICHERER BOSS-CHECK MIT WEB LOCKS API ---
+    async function safeBackgroundCheck() {
+        if ('locks' in navigator) {
+            try {
+                await navigator.locks.request('bay_cl_master_lock', { ifAvailable: true }, async (lock) => {
+                    if (!lock) {
+                        // Ein anderes Gerät/Tab hat gerade den Boss-Sitz – wir halten die Füße still
+                        return;
+                    }
+                    // WIR SIND DER BOSS! Daten laden & Push prüfen
+                    await loadAllData();
+                    
+                    // Schloss für 5 Sekunden halten, damit nicht sofort hin- und hergewechselt wird
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                });
+            } catch (e) {
+                await loadAllData();
+            }
+        } else {
+            await loadAllData();
+        }
+    }
+
+    // Initialer Start beim Laden der App
+    safeBackgroundCheck();
+
+    // Alle 30 Sekunden läuft der abgesicherte Check automatisch im Hintergrund
+    setInterval(safeBackgroundCheck, 30000);
 </script>
 
 </body>
