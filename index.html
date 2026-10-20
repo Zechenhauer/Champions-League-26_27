@@ -305,6 +305,7 @@
             font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
+            white-space: nowrap;
         }
         .live-dot {
             width: 6px;
@@ -554,7 +555,6 @@
     let matchdaysCache = {};
     let allLoadedEvents = [];
     
-    // Gespeicherte Spielstände aus dem LocalStorage laden
     let previousScores = JSON.parse(localStorage.getItem('cl_previous_scores') || '{}');
 
     function urlBase64ToUint8Array(base64String) {
@@ -683,12 +683,10 @@
                 let hScore = parseInt(home.score);
                 let aScore = parseInt(away.score);
 
-                // Wenn das Spiel zum ersten Mal geladen wird, initialisieren ohne zu pushen
                 if (previousScores[matchId] === undefined) {
                     previousScores[matchId] = { home: hScore, away: aScore };
                 } else {
                     let prev = previousScores[matchId];
-                    // Prüfen ob sich die Tore im Vergleich zum letzten Intervall erhöht haben
                     if (hScore > prev.home || aScore > prev.away) {
                         let details = comp?.details || [];
                         let latestScorer = "";
@@ -700,10 +698,8 @@
                             }
                         });
 
-                        console.log("TOR GEFALLEN! Sende Push für:", home.team.displayName, "vs", away.team.displayName, hScore, ":", aScore);
                         triggerAutomaticGoalPush(home.team.displayName, away.team.displayName, hScore, aScore, latestScorer);
                     }
-                    // Wert im Speicher aktualisieren
                     previousScores[matchId] = { home: hScore, away: aScore };
                 }
             }
@@ -826,6 +822,7 @@
             let isLive = status?.state === "in";
             let isCompleted = status?.completed;
             let hasScore = home.score !== undefined && away.score !== undefined;
+            let displayClock = ev.status?.displayClock || "";
 
             let matchDateObj = new Date(ev.date);
             let dateStr = matchDateObj.toLocaleDateString("de-DE", { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -861,7 +858,11 @@
             let awayClass = aName.toLowerCase().includes("bayern") ? 'bayern-highlight' : (germanTeams.some(t => aName.includes(t)) ? 'german-highlight' : '');
 
             let scoreText = hasScore ? `<strong>${home.score}:${away.score}</strong>` : `<span style="color: var(--text-muted); font-style: italic;">vs</span>`;
-            if (isLive) scoreText += ` <span class="live-badge"><span class="live-dot"></span>LIVE</span>`;
+            
+            if (isLive) {
+                let clockText = displayClock ? ` ${displayClock}` : '';
+                scoreText += ` <span class="live-badge"><span class="live-dot"></span>LIVE${clockText}</span>`;
+            }
 
             let scorersHtml = '';
             if (homeScorers.length > 0 || awayScorers.length > 0) {
