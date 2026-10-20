@@ -832,19 +832,37 @@
             let isGerman = germanTeams.some(t => hName.includes(t) || aName.includes(t));
 
             let details = comp?.details || [];
-            let homeScorers = [];
-            let awayScorers = [];
+            let homeEvents = [];
+            let awayEvents = [];
 
             details.forEach(d => {
-                if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
-                    let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Tor';
-                    let minute = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
-                    let goalStr = `⚽ ${playerName}${minute}`;
-                    
-                    if (d.team?.id === home.team.id) {
-                        homeScorers.push(goalStr);
-                    } else if (d.team?.id === away.team.id) {
-                        awayScorers.push(goalStr);
+                let typeText = (d.type && d.type.text) ? d.type.text.toLowerCase() : "";
+                let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || '';
+                let minute = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
+
+                if (d.scoringPlay || typeText.includes("goal")) {
+                    if (playerName) {
+                        let goalStr = `⚽ ${playerName}${minute}`;
+                        if (d.team?.id === home.team.id) homeEvents.push(goalStr);
+                        else if (d.team?.id === away.team.id) awayEvents.push(goalStr);
+                    }
+                } else if (typeText.includes("yellow-red") || typeText.includes("gelb-rot")) {
+                    if (playerName) {
+                        let yellowRedStr = `🟨🟥 ${playerName}${minute}`;
+                        if (d.team?.id === home.team.id) homeEvents.push(yellowRedStr);
+                        else if (d.team?.id === away.team.id) awayEvents.push(yellowRedStr);
+                    }
+                } else if (typeText.includes("yellow") || typeText.includes("gelbe karte")) {
+                    if (playerName) {
+                        let yellowStr = `🟨 ${playerName}${minute}`;
+                        if (d.team?.id === home.team.id) homeEvents.push(yellowStr);
+                        else if (d.team?.id === away.team.id) awayEvents.push(yellowStr);
+                    }
+                } else if (typeText.includes("red") || typeText.includes("rote karte")) {
+                    if (playerName) {
+                        let redStr = `🟥 ${playerName}${minute}`;
+                        if (d.team?.id === home.team.id) homeEvents.push(redStr);
+                        else if (d.team?.id === away.team.id) awayEvents.push(redStr);
                     }
                 }
             });
@@ -864,12 +882,12 @@
                 scoreText += ` <span class="live-badge"><span class="live-dot"></span>LIVE${clockText}</span>`;
             }
 
-            let scorersHtml = '';
-            if (homeScorers.length > 0 || awayScorers.length > 0) {
-                scorersHtml = `
+            let eventsHtml = '';
+            if (homeEvents.length > 0 || awayEvents.length > 0) {
+                eventsHtml = `
                     <div class="match-scorers-row">
-                        <div class="scorers-side home">${homeScorers.join('<br>')}</div>
-                        <div class="scorers-side away">${awayScorers.join('<br>')}</div>
+                        <div class="scorers-side home">${homeEvents.join('<br>')}</div>
+                        <div class="scorers-side away">${awayEvents.join('<br>')}</div>
                     </div>
                 `;
             }
@@ -890,7 +908,7 @@
                         <span class="${awayClass}">${aName}</span>
                     </div>
                 </div>
-                ${scorersHtml}
+                ${eventsHtml}
             `;
             container.appendChild(card);
         });
