@@ -519,7 +519,7 @@
     <!-- SPIELTAGS-LISTE -->
     <div class="section-box">
         <div class="section-header" id="matchdayTableHeader">
-            <span>Spieltag 2 — Spiele & Live-Scores</span>
+            <span>Spieltag 3 — Spiele & Live-Scores</span>
             <div class="header-actions">
                 <button class="header-action-btn" onclick="openAllScorersModal()">🏆 Alle Torschützen (CL)</button>
                 <button class="header-action-btn" onclick="requestPushPermission()">🔔 Push-Alarm</button>
@@ -527,7 +527,7 @@
         </div>
         <div class="matchday-controls">
             <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
-            <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 2</strong>
+            <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 3</strong>
             <button class="matchday-btn" onclick="changeMatchday(1)">Nächster Spieltag ▶</button>
         </div>
         <div id="matchdayMatchesContainer"></div>
@@ -619,7 +619,7 @@
         8: { title: "Spieltag 8", dates: ["20270128"] }
     };
 
-    let currentMatchday = 2;
+    let currentMatchday = 3; // Standardmäßig auf Spieltag 3 gesetzt
     let matchdaysCache = {};
     let allLoadedEvents = [];
     
@@ -713,10 +713,14 @@
     }
 
     async function loadAllData() {
-        let events1 = await fetchMatchdayData(1);
-        let events2 = await fetchMatchdayData(2);
-        
-        allLoadedEvents = [...events1, ...events2];
+        // Alle Spieltage (1 bis 8) laden, damit Statistiken und Torschützen über die gesamte bisherige Saison stimmen!
+        let allEvents = [];
+        for (let m = 1; m <= 8; m++) {
+            let evs = await fetchMatchdayData(m);
+            allEvents.push(...evs);
+        }
+        allLoadedEvents = allEvents;
+
         let currentEvents = await fetchMatchdayData(currentMatchday);
 
         for (let ev of currentEvents) {
@@ -748,19 +752,16 @@
                         let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
                         let clockVal = d.clock?.displayValue || '0';
                         
-                        // Eindeutige Tor-ID für die globale Supabase-Datenbank
                         let uniqueGoalId = `${matchId}_${playerName}_${clockVal}_${runningHome}_${runningAway}`;
 
                         if (playerName && playerName !== 'Unbekannt') {
                             try {
-                                // 1. Prüfen, ob die Tor-ID schon in Supabase existiert
                                 let { data: existing, error: checkError } = await supabaseClient
                                     .from('sent_goals_cl')
                                     .select('goal_id')
                                     .eq('goal_id', uniqueGoalId)
                                     .maybeSingle();
 
-                                // 2. Wenn das Tor noch nicht existiert, eintragen und Push feuern
                                 if (!existing && !checkError) {
                                     let { error: insertError } = await supabaseClient
                                         .from('sent_goals_cl')
