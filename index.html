@@ -261,7 +261,7 @@
             margin-bottom: 8px;
         }
 
-        .match-scorers-row {
+        .match-scorers-container {
             display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
@@ -605,7 +605,7 @@
 
     const ADMIN_PIN = "1919";
     let isAdmin = false;
-    let globalAllScorers = []; // Speichert das Ranking aller Spieler inkl. Verein & Logo
+    let globalAllScorers = [];
     const germanTeams = ["Borussia Dortmund", "Leipzig", "Stuttgart", "Bayern München", "Bayer Leverkusen", "FC Bayern Munich"];
 
     const matchdaySchedule = {
@@ -744,7 +744,6 @@
                             }
                         });
 
-                        // Sende Tor an Edge Function (Server-Doppelschutz fängt Mehrfachanfragen ab)
                         fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                             method: 'POST',
                             mode: 'cors',
@@ -791,7 +790,7 @@
     function renderBayernStats() {
         let played = 0, won = 0, draw = 0, lost = 0, goalsFor = 0, goalsAgainst = 0, points = 0;
         let bayernScorersMap = {};
-        let allScorersMap = {}; // Speichert Torschützen zusammen mit Team-Info und Logo
+        let allScorersMap = {};
 
         allLoadedEvents.forEach(ev => {
             let comp = ev.competitions?.[0];
@@ -818,7 +817,6 @@
                         let teamName = isHomeGoal ? hName : aName;
                         let teamLogo = isHomeGoal ? hLogo : aLogo;
 
-                        // Schlüssel für den Spieler (Name + Team, falls Spieler bei anderem Verein gleich heißen sollten)
                         let scorerKey = scorer + "_" + teamName;
 
                         if (!allScorersMap[scorerKey]) {
@@ -831,7 +829,6 @@
                         }
                         allScorersMap[scorerKey].count++;
 
-                        // Für die Bayern-Spezifische Ansicht unten auf der Hauptseite
                         let bayernTeamId = isBayernHome ? home.team.id : (isBayernAway ? away.team.id : null);
                         if (bayernTeamId && scoringTeamId === bayernTeamId) {
                             bayernScorersMap[scorer] = (bayernScorersMap[scorer] || 0) + 1;
@@ -866,7 +863,6 @@
             <div class="stat-card"><div class="stat-label">Punkte</div><div class="stat-value">${points}</div></div>
         `;
 
-        // Gesamt-Ranking nach Toren absteigend sortieren
         globalAllScorers = Object.values(allScorersMap).sort((a, b) => b.count - a.count);
 
         let bayernScorersSorted = Object.entries(bayernScorersMap).sort((a, b) => b[1] - a[1]);
@@ -882,7 +878,6 @@
         }
     }
 
-    // Modal Funktionen für das Gesamt-Torschützen-Ranking
     function openAllScorersModal() {
         let modalBody = document.getElementById('modalAllScorersBody');
         modalBody.innerHTML = '';
@@ -946,37 +941,55 @@
             let isGerman = germanTeams.some(t => hName.includes(t) || aName.includes(t));
 
             let details = comp?.details || [];
+            
+            // Chronologische Sortierung nach Spielsekunden falls vorhanden
+            details.sort((a, b) => parseInt(a.clock?.secs || 0) - parseInt(b.clock?.secs || 0));
+
             let homeEvents = [];
             let awayEvents = [];
+            let runningHome = 0;
+            let runningAway = 0;
 
             details.forEach(d => {
                 let typeText = (d.type && d.type.text) ? d.type.text.toLowerCase() : "";
                 let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || '';
                 let minute = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
+                if (minute && !minute.endsWith("'")) minute = minute.replace(')', "')");
 
-                if (d.scoringPlay || typeText.includes("goal")) {
+                const isGoal = d.scoringPlay || typeText.includes("goal");
+                const isYellowRed = typeText.includes("yellow-red") || typeText.includes("gelb-rot");
+                const isYellow = typeText.includes("yellow") || typeText.includes("gelbe karte");
+                const isRed = typeText.includes("red") || typeText.includes("rote karte");
+
+                const scoringTeamId = d.team?.id;
+                const isHomeTeam = (scoringTeamId === home.team.id);
+
+                if (isGoal) {
+                    if (isHomeTeam) runningHome++;
+                    else runningAway++;
+
                     if (playerName) {
-                        let goalStr = `⚽ ${playerName}${minute}`;
-                        if (d.team?.id === home.team.id) homeEvents.push(goalStr);
-                        else if (d.team?.id === away.team.id) awayEvents.push(goalStr);
+                        let goalStr = `[${runningHome}:${runningAway}] ⚽ ${playerName}${minute}`;
+                        if (isHomeTeam) homeEvents.push(goalStr);
+                        else awayEvents.push(goalStr);
                     }
-                } else if (typeText.includes("yellow-red") || typeText.includes("gelb-rot")) {
+                } else if (isYellowRed) {
                     if (playerName) {
                         let yellowRedStr = `🟨🟥 ${playerName}${minute}`;
-                        if (d.team?.id === home.team.id) homeEvents.push(yellowRedStr);
-                        else if (d.team?.id === away.team.id) awayEvents.push(yellowRedStr);
+                        if (isHomeTeam) homeEvents.push(yellowRedStr);
+                        else awayEvents.push(yellowRedStr);
                     }
-                } else if (typeText.includes("yellow") || typeText.includes("gelbe karte")) {
+                } else if (isYellow) {
                     if (playerName) {
                         let yellowStr = `🟨 ${playerName}${minute}`;
-                        if (d.team?.id === home.team.id) homeEvents.push(yellowStr);
-                        else if (d.team?.id === away.team.id) awayEvents.push(yellowStr);
+                        if (isHomeTeam) homeEvents.push(yellowStr);
+                        else awayEvents.push(yellowStr);
                     }
-                } else if (typeText.includes("red") || typeText.includes("rote karte")) {
+                } else if (isRed) {
                     if (playerName) {
                         let redStr = `🟥 ${playerName}${minute}`;
-                        if (d.team?.id === home.team.id) homeEvents.push(redStr);
-                        else if (d.team?.id === away.team.id) awayEvents.push(redStr);
+                        if (isHomeTeam) homeEvents.push(redStr);
+                        else awayEvents.push(redStr);
                     }
                 }
             });
@@ -999,7 +1012,7 @@
             let eventsHtml = '';
             if (homeEvents.length > 0 || awayEvents.length > 0) {
                 eventsHtml = `
-                    <div class="match-scorers-row">
+                    <div class="match-scorers-container">
                         <div class="scorers-side home">${homeEvents.join('<br>')}</div>
                         <div class="scorers-side away">${awayEvents.join('<br>')}</div>
                     </div>
@@ -1106,14 +1119,11 @@
         }
     };
 
-    // --- SICHERER BOSS-CHECK MIT WEB LOCKS API ---
     async function safeBackgroundCheck() {
         if ('locks' in navigator) {
             try {
                 await navigator.locks.request('bay_cl_master_lock', { ifAvailable: true }, async (lock) => {
-                    if (!lock) {
-                        return;
-                    }
+                    if (!lock) return;
                     await loadAllData();
                     await new Promise(resolve => setTimeout(resolve, 5000));
                 });
