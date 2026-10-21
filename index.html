@@ -719,7 +719,7 @@
         allLoadedEvents = [...events1, ...events2];
         let currentEvents = await fetchMatchdayData(currentMatchday);
 
-        currentEvents.forEach(ev => {
+        for (let ev of currentEvents) {
             let comp = ev.competitions?.[0];
             let home = comp?.competitors?.find(c => c.homeAway === "home");
             let away = comp?.competitors?.find(c => c.homeAway === "away");
@@ -729,36 +729,69 @@
                 let hScore = parseInt(home.score);
                 let aScore = parseInt(away.score);
 
-                if (previousScores[matchId] === undefined) {
-                    previousScores[matchId] = { home: hScore, away: aScore };
-                } else {
-                    let prev = previousScores[matchId];
-                    if (hScore > prev.home || aScore > prev.away) {
-                        let details = comp?.details || [];
-                        let latestScorer = "";
-                        details.forEach(d => {
-                            if (d.scoringPlay || (d.type && d.type.text && d.type.text.toLowerCase().includes("goal"))) {
-                                let name = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || '';
-                                let min = d.clock?.displayValue ? ` (${d.clock.displayValue})` : '';
-                                if (name) latestScorer = `${name}${min}`;
-                            }
-                        });
+                let details = comp?.details || [];
+                details.sort((a, b) => parseInt(a.clock?.secs || 0) - parseInt(b.clock?.secs || 0));
 
-                        fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
-                            method: 'POST',
-                            mode: 'cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                table: 'push_subscriptions_cl',
-                                title: `⚽ TOR! (${hScore}:${aScore})`,
-                                body: latestScorer ? `Torschütze: ${latestScorer}\n(${home.team.displayName} vs ${away.team.displayName})` : `${home.team.displayName} vs ${away.team.displayName}`
-                            })
-                        }).catch(err => console.error("Push Fehler:", err));
+                let runningHome = 0;
+                let runningAway = 0;
+
+                for (let d of details) {
+                    let typeText = (d.type && d.type.text) ? d.type.text.toLowerCase() : "";
+                    const isGoal = d.scoringPlay || typeText.includes("goal");
+
+                    if (isGoal) {
+                        const scoringTeamId = d.team?.id;
+                        const isHomeTeam = (scoringTeamId === home.team.id);
+                        if (isHomeTeam) runningHome++;
+                        else runningAway++;
+
+                        let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
+                        let clockVal = d.clock?.displayValue || '0';
+                        
+                        // Eindeutige Tor-ID für die globale Supabase-Datenbank
+                        let uniqueGoalId = `${matchId}_${playerName}_${clockVal}_${runningHome}_${runningAway}`;
+
+                        if (playerName && playerName !== 'Unbekannt') {
+                            try {
+                                // 1. Prüfen, ob die Tor-ID schon in Supabase existiert
+                                let { data: existing, error: checkError } = await supabaseClient
+                                    .from('sent_goals_cl')
+                                    .select('goal_id')
+                                    .eq('goal_id', uniqueGoalId)
+                                    .maybeSingle();
+
+                                // 2. Wenn das Tor noch nicht existiert, eintragen und Push feuern
+                                if (!existing && !checkError) {
+                                    let { error: insertError } = await supabaseClient
+                                        .from('sent_goals_cl')
+                                        .insert([{ goal_id: uniqueGoalId }]);
+
+                                    if (!insertError) {
+                                        let minStr = clockVal ? ` (${clockVal})` : '';
+                                        if (minStr && !minStr.endsWith("'")) minStr = minStr.replace(')', "')");
+
+                                        await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
+                                            method: 'POST',
+                                            mode: 'cors',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                table: 'push_subscriptions_cl',
+                                                title: `⚽ TOR! (${runningHome}:${runningAway})`,
+                                                body: `Torschütze: ${playerName}${minStr}\n(${home.team.displayName} vs ${away.team.displayName})`
+                                            })
+                                        });
+                                    }
+                                }
+                            } catch (err) {
+                                console.error("Fehler beim Verarbeiten des Tor-Caches:", err);
+                            }
+                        }
                     }
-                    previousScores[matchId] = { home: hScore, away: aScore };
                 }
+
+                previousScores[matchId] = { home: hScore, away: aScore };
             }
-        });
+        }
         
         localStorage.setItem('cl_previous_scores', JSON.stringify(previousScores));
 
@@ -941,8 +974,6 @@
             let isGerman = germanTeams.some(t => hName.includes(t) || aName.includes(t));
 
             let details = comp?.details || [];
-            
-            // Chronologische Sortierung nach Spielsekunden falls vorhanden
             details.sort((a, b) => parseInt(a.clock?.secs || 0) - parseInt(b.clock?.secs || 0));
 
             let homeEvents = [];
