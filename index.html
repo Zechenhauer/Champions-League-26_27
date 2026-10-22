@@ -619,7 +619,7 @@
         8: { title: "Spieltag 8", dates: ["20270128"] }
     };
 
-    let currentMatchday = 3; // Standardmäßig auf Spieltag 3 gesetzt
+    let currentMatchday = 3;
     let matchdaysCache = {};
     let allLoadedEvents = [];
     
@@ -713,7 +713,6 @@
     }
 
     async function loadAllData() {
-        // Alle Spieltage (1 bis 8) laden, damit Statistiken und Torschützen über die gesamte bisherige Saison stimmen!
         let allEvents = [];
         for (let m = 1; m <= 8; m++) {
             let evs = await fetchMatchdayData(m);
@@ -771,14 +770,15 @@
                                         let minStr = clockVal ? ` (${clockVal})` : '';
                                         if (minStr && !minStr.endsWith("'")) minStr = minStr.replace(')', "')");
 
+                                        let scoringTeamName = isHomeTeam ? home.team.displayName : away.team.displayName;
                                         await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                                             method: 'POST',
                                             mode: 'cors',
                                             headers: { 'Content-Type': 'application/json' },
                                             body: JSON.stringify({
                                                 table: 'push_subscriptions_cl',
-                                                title: `⚽ TOR! (${runningHome}:${runningAway})`,
-                                                body: `Torschütze: ${playerName}${minStr}\n(${home.team.displayName} vs ${away.team.displayName})`
+                                                title: `⚽ ${scoringTeamName} — Tor! (${runningHome}:${runningAway})`,
+                                                body: `Torschütze: ${playerName}${minStr}\nBegegnung: ${home.team.displayName} vs ${away.team.displayName} (${runningHome}:${runningAway})`
                                             })
                                         });
                                     }
