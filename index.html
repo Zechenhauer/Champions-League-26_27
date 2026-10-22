@@ -44,6 +44,90 @@
             box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
         }
 
+        /* LAUFBAND / TICKER STYLES (RUHIG & DEZENTE TEAM-FARBEN) */
+        .ticker-wrapper {
+            width: 100%;
+            background: #000000;
+            border: 1px solid var(--bayern-red);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            height: 36px;
+            position: relative;
+        }
+        .ticker-label {
+            background: var(--bayern-red);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 0 10px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ticker-content-box {
+            overflow: hidden;
+            white-space: nowrap;
+            flex: 1;
+            position: relative;
+        }
+        .ticker-track {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker-scroll 120s linear infinite;
+            font-size: 0.85rem;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        .ticker-track:hover {
+            animation-play-state: paused;
+        }
+        .ticker-item {
+            display: inline-block;
+            padding: 0 30px;
+            color: #ffffff;
+        }
+        .ticker-item span {
+            color: #ffffff;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+        /* Dezente Highlight-Stile für deutsche Teams im Ticker */
+        .ticker-highlight-bayern {
+            background: rgba(220, 5, 45, 0.3);
+            border-top: 1px solid var(--bayern-red);
+            border-bottom: 1px solid var(--bayern-red);
+            padding-top: 2px; padding-bottom: 2px; border-radius: 4px;
+        }
+        .ticker-highlight-bvb {
+            background: rgba(255, 204, 0, 0.25);
+            border-top: 1px solid #ffcc00;
+            border-bottom: 1px solid #ffcc00;
+            padding-top: 2px; padding-bottom: 2px; border-radius: 4px;
+        }
+        .ticker-highlight-leverkusen {
+            background: rgba(227, 38, 54, 0.25);
+            border-top: 1px solid #e32636;
+            border-bottom: 1px solid #e32636;
+            padding-top: 2px; padding-bottom: 2px; border-radius: 4px;
+        }
+        .ticker-highlight-german {
+            background: rgba(100, 149, 237, 0.25);
+            border-top: 1px solid #6495ed;
+            border-bottom: 1px solid #6495ed;
+            padding-top: 2px; padding-bottom: 2px; border-radius: 4px;
+        }
+
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
         .banner-wrapper {
             width: 100%;
             display: flex;
@@ -428,7 +512,6 @@
         }
         .btn:hover { background: var(--bayern-red-hover); }
 
-        /* Modal für Torschützen-Ranking */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -474,6 +557,16 @@
 <body>
 
 <div class="container">
+    <!-- LAUFBAND / LIVE-TICKER OBEN -->
+    <div class="ticker-wrapper">
+        <div class="ticker-label">⚽ Ticker</div>
+        <div class="ticker-content-box">
+            <div class="ticker-track" id="tickerTrack">
+                <span class="ticker-item">Lade aktuelle Champions-League-Spielstände...</span>
+            </div>
+        </div>
+    </div>
+
     <div class="banner-wrapper">
         <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/vereinslogos/Teamfoto_bayern.png" alt="FC Bayern Teamfoto Banner" class="app-banner">
     </div>
@@ -575,7 +668,7 @@
     </div>
 </div>
 
-<!-- MODAL FÜR ALLE TORSCHÜTZEN DER GESAMTEN LIGA MIT VEREIN & LOGO -->
+<!-- MODAL FÜR ALLE TORSCHÜTZEN -->
 <div class="modal-overlay" id="allScorersModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -622,7 +715,7 @@
     let currentMatchday = 3;
     let matchdaysCache = {};
     let allLoadedEvents = [];
-    
+    let latestLiveGoalsTicker = [];
     let previousScores = JSON.parse(localStorage.getItem('cl_previous_scores') || '{}');
 
     function urlBase64ToUint8Array(base64String) {
@@ -721,16 +814,22 @@
         allLoadedEvents = allEvents;
 
         let currentEvents = await fetchMatchdayData(currentMatchday);
+        latestLiveGoalsTicker = [];
+        let hasLive = false;
 
         for (let ev of currentEvents) {
             let comp = ev.competitions?.[0];
             let home = comp?.competitors?.find(c => c.homeAway === "home");
             let away = comp?.competitors?.find(c => c.homeAway === "away");
             
-            if (home && away && home.score !== undefined && away.score !== undefined) {
+            if (home && away) {
+                let statusType = ev.status?.type?.state;
+                let isLive = statusType === 'in';
+                if (isLive) hasLive = true;
+
                 let matchId = 'cl_' + ev.id;
-                let hScore = parseInt(home.score);
-                let aScore = parseInt(away.score);
+                let hScore = home.score !== undefined && home.score !== "" && statusType !== 'pre' ? parseInt(home.score) : null;
+                let aScore = away.score !== undefined && away.score !== "" && statusType !== 'pre' ? parseInt(away.score) : null;
 
                 let details = comp?.details || [];
                 details.sort((a, b) => parseInt(a.clock?.secs || 0) - parseInt(b.clock?.secs || 0));
@@ -750,7 +849,7 @@
 
                         let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
                         let clockVal = d.clock?.displayValue || '0';
-                        
+                        let scoringTeamName = isHomeTeam ? home.team.displayName : away.team.displayName;
                         let uniqueGoalId = `${matchId}_${playerName}_${clockVal}_${runningHome}_${runningAway}`;
 
                         if (playerName && playerName !== 'Unbekannt') {
@@ -770,7 +869,6 @@
                                         let minStr = clockVal ? ` (${clockVal})` : '';
                                         if (minStr && !minStr.endsWith("'")) minStr = minStr.replace(')', "')");
 
-                                        let scoringTeamName = isHomeTeam ? home.team.displayName : away.team.displayName;
                                         await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
                                             method: 'POST',
                                             mode: 'cors',
@@ -787,21 +885,92 @@
                                 console.error("Fehler beim Verarbeiten des Tor-Caches:", err);
                             }
                         }
+
+                        if (isLive) {
+                            let hName = home.team.displayName;
+                            let aName = away.team.displayName;
+                            let highlightClass = '';
+                            if (hName.toLowerCase().includes("bayern") || aName.toLowerCase().includes("bayern")) highlightClass = ' ticker-highlight-bayern';
+                            else if (hName.toLowerCase().includes("dortmund") || aName.toLowerCase().includes("dortmund")) highlightClass = ' ticker-highlight-bvb';
+                            else if (hName.toLowerCase().includes("leverkusen") || aName.toLowerCase().includes("leverkusen")) highlightClass = ' ticker-highlight-leverkusen';
+                            else if (germanTeams.some(t => hName.includes(t) || aName.includes(t))) highlightClass = ' ticker-highlight-german';
+
+                            latestLiveGoalsTicker.push(`<span class="ticker-item${highlightClass}">⚽ ${scoringTeamName}: ${playerName} <span>${hName} ${runningHome}:${runningAway} ${aName}</span> (LIVE)</span>`);
+                        }
                     }
                 }
-
                 previousScores[matchId] = { home: hScore, away: aScore };
             }
         }
         
         localStorage.setItem('cl_previous_scores', JSON.stringify(previousScores));
 
-        let hasLive = currentEvents.some(ev => ev.status?.type?.state === "in");
         let liveBadge = document.getElementById('liveIndicatorBadge');
         if (liveBadge) liveBadge.style.display = hasLive ? 'flex' : 'none';
 
         renderBayernStats();
         renderAll(currentEvents);
+        updateTicker();
+    }
+
+    // TICKER AKTUALISIERUNG (EXAKT WIE GEWÜNSCHT MIT LIVE-TOREN ODER FALLBACK)
+    function updateTicker() {
+        let tickerItems = [];
+
+        if (latestLiveGoalsTicker.length > 0) {
+            tickerItems = latestLiveGoalsTicker;
+        } else {
+            // Automatischer Fallback auf den letzten beendeten Spieltag
+            let targetMatchday = currentMatchday;
+            let events = matchdaysCache[targetMatchday] || [];
+            
+            let hasResults = events.some(ev => {
+                let h = ev.competitions?.[0]?.competitors?.find(c => c.homeAway === 'home')?.score;
+                return h !== undefined && h !== null && h !== "";
+            });
+
+            if (!hasResults && targetMatchday > 1) {
+                for (let d = targetMatchday - 1; d >= 1; d--) {
+                    let prevEvents = matchdaysCache[d] || [];
+                    if (prevEvents.some(ev => {
+                        let h = ev.competitions?.[0]?.competitors?.find(c => c.homeAway === 'home')?.score;
+                        return h !== undefined && h !== null && h !== "";
+                    })) {
+                        targetMatchday = d;
+                        events = prevEvents;
+                        break;
+                    }
+                }
+            }
+
+            events.forEach(ev => {
+                let comp = ev.competitions?.[0];
+                let home = comp?.competitors?.find(c => c.homeAway === 'home');
+                let away = comp?.competitors?.find(c => c.homeAway === 'away');
+                if (!home || !away) return;
+
+                let hName = home.team.displayName;
+                let aName = away.team.displayName;
+                let hScore = home.score;
+                let aScore = away.score;
+                let hasRes = hScore !== undefined && hScore !== null && hScore !== "";
+                let scoreStr = hasRes ? `${hScore}:${aScore}` : 'vs';
+                let status = ev.status?.type?.completed ? 'Endstand' : (ev.status?.type?.state === 'in' ? '🔴 LIVE' : '');
+
+                let highlightClass = '';
+                if (hName.toLowerCase().includes("bayern") || aName.toLowerCase().includes("bayern")) highlightClass = ' ticker-highlight-bayern';
+                else if (hName.toLowerCase().includes("dortmund") || aName.toLowerCase().includes("dortmund")) highlightClass = ' ticker-highlight-bvb';
+                else if (hName.toLowerCase().includes("leverkusen") || aName.toLowerCase().includes("leverkusen")) highlightClass = ' ticker-highlight-leverkusen';
+                else if (germanTeams.some(t => hName.includes(t) || aName.includes(t))) highlightClass = ' ticker-highlight-german';
+
+                tickerItems.push(`<span class="ticker-item${highlightClass}">${hName} - ${aName} <span>${scoreStr}</span> ${status ? '(' + status + ')' : ''}</span>`);
+            });
+        }
+
+        const tickerTrack = document.getElementById('tickerTrack');
+        if (tickerTrack) {
+            tickerTrack.innerHTML = tickerItems.length > 0 ? tickerItems.join('') : `<span class="ticker-item">Keine Spiele im Ticker verfügbar.</span>`;
+        }
     }
 
     async function changeMatchday(amount) {
@@ -811,6 +980,7 @@
         
         let events = await fetchMatchdayData(currentMatchday);
         renderMatchdayCards(events);
+        updateTicker();
     }
 
     function renderAll(events) {
@@ -850,16 +1020,10 @@
                         
                         let teamName = isHomeGoal ? hName : aName;
                         let teamLogo = isHomeGoal ? hLogo : aLogo;
-
                         let scorerKey = scorer + "_" + teamName;
 
                         if (!allScorersMap[scorerKey]) {
-                            allScorersMap[scorerKey] = {
-                                player: scorer,
-                                team: teamName,
-                                logo: teamLogo,
-                                count: 0
-                            };
+                            allScorersMap[scorerKey] = { player: scorer, team: teamName, logo: teamLogo, count: 0 };
                         }
                         allScorersMap[scorerKey].count++;
 
