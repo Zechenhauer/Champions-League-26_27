@@ -913,14 +913,13 @@
         updateTicker();
     }
 
-    // TICKER AKTUALISIERUNG (EXAKT WIE GEWÜNSCHT MIT LIVE-TOREN ODER FALLBACK)
+    // HIER DIE EXAKTE URSPRÜNGLICHE TICKER-FUNKTION (OHNE FEHLER BEIM LAUFBAND)
     function updateTicker() {
         let tickerItems = [];
 
         if (latestLiveGoalsTicker.length > 0) {
             tickerItems = latestLiveGoalsTicker;
         } else {
-            // Automatischer Fallback auf den letzten beendeten Spieltag
             let targetMatchday = currentMatchday;
             let events = matchdaysCache[targetMatchday] || [];
             
@@ -1331,7 +1330,7 @@
         }
     }
 
-    safeBackgroundCheck();
+    loadAllData();
     setInterval(safeBackgroundCheck, 30000);
 </script>
 
