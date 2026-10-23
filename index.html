@@ -850,7 +850,7 @@
                         let playerName = d.athletesInvolved?.[0]?.displayName || d.player?.displayName || d.athlete?.displayName || 'Unbekannt';
                         let clockVal = d.clock?.displayValue || '0';
                         let scoringTeamName = isHomeTeam ? home.team.displayName : away.team.displayName;
-                        let uniqueGoalId = `${matchId}_${playerName}_${clockVal}_${runningHome}_${runningAway}`;
+                        let uniqueGoalId = `${matchId}_${playerName}_${clockVal}`;
 
                         if (playerName && playerName !== 'Unbekannt') {
                             try {
