@@ -753,6 +753,7 @@
             const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
             const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
 
+            // Korrekt an push_subscriptions_cl angebunden
             const { error } = await supabaseClient.from('push_subscriptions_cl').upsert({
                 endpoint: subscription.endpoint,
                 p256dh: p256dh,
@@ -760,7 +761,7 @@
             }, { onConflict: 'endpoint' });
 
             if (error) alert("Fehler in Supabase: " + error.message);
-            else alert("Push-Alarm für Champions League erfolgreich aktiviert!");
+            else alert("Push-Alarm für Champions League erfolgreich in Supabase registriert!");
         } catch (error) {
             alert("Fehler beim Aktivieren der Benachrichtigung: " + error.message);
         }
@@ -854,6 +855,7 @@
 
                         if (playerName && playerName !== 'Unbekannt') {
                             try {
+                                // Korrekt an sent_goals_cl angebunden
                                 let { data: existing, error: checkError } = await supabaseClient
                                     .from('sent_goals_cl')
                                     .select('goal_id')
@@ -913,7 +915,6 @@
         updateTicker();
     }
 
-    // HIER DIE EXAKTE URSPRÜNGLICHE TICKER-FUNKTION (OHNE FEHLER BEIM LAUFBAND)
     function updateTicker() {
         let tickerItems = [];
 
