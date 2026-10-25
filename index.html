@@ -44,7 +44,7 @@
             box-shadow: 0 4px 20px rgba(220, 5, 45, 0.15);
         }
 
-        /* LAUFBAND / TICKER STYLES (RUHIG & DEZENTE TEAM-FARBEN) */
+        /* LAUFBAND / TICKER STYLES */
         .ticker-wrapper {
             width: 100%;
             background: #000000;
@@ -97,7 +97,6 @@
             font-weight: bold;
             margin-left: 6px;
         }
-        /* Dezente Highlight-Stile für deutsche Teams im Ticker */
         .ticker-highlight-bayern {
             background: rgba(220, 5, 45, 0.3);
             border-top: 1px solid var(--bayern-red);
@@ -567,6 +566,7 @@
         </div>
     </div>
 
+    <!-- BANNER LÄDT JETZT DIREKT VOM GITHUB-ORDNER -->
     <div class="banner-wrapper">
         <img src="https://raw.githubusercontent.com/Zechenhauer/Champions-League-26_27/main/assets/vereinslogos/Teamfoto_bayern.png" alt="FC Bayern Teamfoto Banner" class="app-banner">
     </div>
@@ -753,7 +753,6 @@
             const p256dh = subscription.getKey('p256dh') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('p256dh')))) : '';
             const auth = subscription.getKey('auth') ? btoa(String.fromCharCode.apply(null, new Uint8Array(subscription.getKey('auth')))) : '';
 
-            // Korrekt an push_subscriptions_cl angebunden
             const { error } = await supabaseClient.from('push_subscriptions_cl').upsert({
                 endpoint: subscription.endpoint,
                 p256dh: p256dh,
@@ -814,7 +813,15 @@
         }
         allLoadedEvents = allEvents;
 
-        let currentEvents = await fetchMatchdayData(currentMatchday);
+        for (let m = 1; m <= 8; m++) {
+            let evs = matchdaysCache[m] || [];
+            if (evs.some(ev => ev.competitions?.[0]?.competitors?.some(c => c.team?.displayName?.toLowerCase().includes("bayern")))) {
+                currentMatchday = m;
+                break;
+            }
+        }
+
+        let currentEvents = matchdaysCache[currentMatchday] || await fetchMatchdayData(currentMatchday);
         latestLiveGoalsTicker = [];
         let hasLive = false;
 
@@ -855,7 +862,6 @@
 
                         if (playerName && playerName !== 'Unbekannt') {
                             try {
-                                // Korrekt an sent_goals_cl angebunden
                                 let { data: existing, error: checkError } = await supabaseClient
                                     .from('sent_goals_cl')
                                     .select('goal_id')
@@ -1113,6 +1119,12 @@
             container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Keine Spiele für diesen Spieltag gefunden.</div>`;
             return;
         }
+
+        eventsList.sort((a, b) => {
+            let aBayern = a.competitions?.[0]?.competitors?.some(c => c.team?.displayName?.toLowerCase().includes("bayern"));
+            let bBayern = b.competitions?.[0]?.competitors?.some(c => c.team?.displayName?.toLowerCase().includes("bayern"));
+            return bBayern - aBayern;
+        });
 
         eventsList.forEach(ev => {
             let comp = ev.competitions?.[0];
